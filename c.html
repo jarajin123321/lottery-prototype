@@ -1,0 +1,795 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>九宫格抽奖 · C 端原型（带需求备注）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#eef1f5;color:#111827;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.stage{padding:34px 40px 60px}
+.board{display:flex;flex-direction:column;gap:34px}
+
+/* ── 每屏一行 ── */
+.srow{display:block}
+.srt{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px;display:flex;
+  align-items:center;gap:9px}
+.srt .no{width:23px;height:23px;border-radius:50%;background:#0f172a;color:#fff;font-size:12.5px;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.srbody{display:flex;gap:30px;align-items:flex-start}
+.phwrap{flex:none;width:375px}
+/* 同一屏里的其它弹窗形态 */
+.altwrap{display:flex;gap:11px;margin-top:16px}
+.altcard{flex:1;min-width:0;background:#f5f5f7;border:1px dashed #cbd5e1;border-radius:14px;
+  padding:10px 10px 12px}
+.altlb{font-size:11.5px;font-weight:700;color:#6d28d9;margin-bottom:8px}
+.altpop{background:#fff;border-radius:13px;padding:15px 12px 13px;text-align:center;
+  box-shadow:0 1px 3px rgba(15,23,42,.06)}
+.altpic{font-size:32px;line-height:1;margin-bottom:8px}
+.altnm{font-size:12.5px;font-weight:700;color:#1f2937}
+.alttx{font-size:11px;color:#6b7280;line-height:1.62;margin-top:6px}
+.altbt{margin-top:11px;height:32px;border-radius:9px;color:#fff;font-size:12.5px;font-weight:600;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#fbbf24,#f97316)}
+.altbt.gray{background:#eef2f6;color:#64748b}
+.note{flex:1;min-width:260px;max-width:820px;background:#fff;border-radius:16px;
+  border:1px solid #d7dee7;padding:18px 22px 20px}
+.nh{font-size:13px;font-weight:700;color:#6d28d9;padding-bottom:10px;margin-bottom:13px;
+  border-bottom:1px dashed #e3ddf5;letter-spacing:.2px}
+.note ol{list-style:none;counter-reset:n}
+.note li{counter-increment:n;position:relative;padding-left:30px;margin-bottom:11px;
+  font-size:13px;line-height:1.68;color:#4b5563}
+.note li:last-child{margin-bottom:0}
+.note li::before{content:counter(n);position:absolute;left:0;top:2px;width:20px;height:20px;
+  border-radius:50%;background:#e5484d;color:#fff;font-size:11.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+/* 备注里字体 / 字号 / 颜色全都不变，也不加粗 ——
+   axhub 导入 Axure 时，字体、字号、颜色、字重任何一项不一致都会被拆成多个文本框 */
+.note, .note *{font-family:inherit}
+
+/* ── 通栏说明 ── */
+.band{background:#fff;border-radius:16px;border:1px solid #d7dee7;padding:18px 22px 20px}
+.band .bt{font-size:14px;font-weight:700;color:#0f172a;margin-bottom:14px}
+.band.ok{background:#f7f5ff;border-color:#ddd6fe}
+.band.ok .bt{color:#5b21b6}
+.bcols{display:flex;gap:34px;flex-wrap:wrap}
+.bcol{flex:1;min-width:300px}
+.bh{font-size:12.5px;font-weight:700;color:#6d28d9;margin-bottom:8px}
+.band ul{list-style:none}
+.band li{position:relative;padding-left:14px;line-height:1.75;margin-bottom:4px;font-size:13px;
+  color:#4b5563}
+.band li::before{content:"";position:absolute;left:2px;top:9px;width:4px;height:4px;
+  border-radius:50%;background:#cbd5e1}
+.band.ok li{color:#4a4458}
+.band.ok li::before{background:#a78bfa}
+.wlist{columns:2;column-gap:34px}
+.wlist li{break-inside:avoid}
+.ar{color:#94a3b8;margin:0 3px}
+
+/* ── 序号标注 ── */
+.mk{position:absolute;right:-10px;top:50%;transform:translateY(-50%);width:19px;height:19px;
+  border-radius:50%;background:#e5484d;color:#fff;font-size:11px;font-weight:700;font-style:normal;
+  display:flex;align-items:center;justify-content:center;z-index:9;
+  box-shadow:0 1px 5px rgba(229,72,77,.5),0 0 0 2px #fff}
+
+/* ── 手机框 ── */
+.ph{width:375px;min-height:812px;background:#fff;border-radius:38px;border:1px solid #d7dee7;
+  box-shadow:0 14px 36px rgba(15,23,42,.13);overflow:hidden;display:flex;flex-direction:column;
+  position:relative}
+.sbar{height:46px;flex:none;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px 0 26px;font-size:13.5px;font-weight:600;letter-spacing:.4px;background:#fff}
+.nav{height:46px;flex:none;display:flex;align-items:center;padding:0 15px;background:#fff;
+  border-bottom:1px solid #eef1f5;position:relative}
+.nav .bk{width:30px;height:30px;display:flex;align-items:center;color:#7c3aed;flex:none}
+.nav .ttl{position:absolute;left:0;right:0;text-align:center;font-size:16.5px;font-weight:600}
+.nav .rt{margin-left:auto;color:#6b7280;display:flex;align-items:center;z-index:1;font-size:13px}
+
+/* ── 抽奖活动页 ── */
+.act{flex:1;background:linear-gradient(170deg,#7c3aed 0%,#9b5cf6 42%,#c084fc 68%,#f3e8ff 100%);
+  padding:0 0 60px;position:relative;display:flex;flex-direction:column}
+.actbar{height:44px;flex:none;display:flex;align-items:center;padding:0 22px 0 26px;
+  justify-content:space-between;font-size:13.5px;font-weight:600;letter-spacing:.4px;color:#fff}
+.ahead{padding:2px 16px 0;position:relative;color:#fff}
+.aname{font-size:20px;font-weight:700;letter-spacing:.3px;text-shadow:0 2px 8px rgba(76,29,149,.35)}
+.atime{font-size:11.5px;opacity:.9;margin-top:7px}
+.anav{display:flex;justify-content:space-between;align-items:center;margin-top:11px}
+.anav .lnk{font-size:12px;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.42);
+  border-radius:20px;padding:4px 12px;position:relative}
+.anav .mine{font-size:12px;background:#fff;color:#7c3aed;border-radius:20px;padding:5px 13px;
+  font-weight:600;position:relative}
+.bcast{margin:11px 16px 0;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.32);
+  border-radius:20px;height:29px;display:flex;align-items:center;padding:0 12px;gap:7px;
+  font-size:11.5px;color:#fff;position:relative}
+.bcast .ic{flex:none;font-size:11px}
+.bcast .tx{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.leftc{margin:11px 16px 0;display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:12.5px;color:#fff;background:rgba(76,29,149,.28);border-radius:11px;padding:7px 0;
+  position:relative}
+.leftc em{font-style:normal;font-size:16px;font-weight:700;color:#fde68a}
+
+/* 九宫格 */
+.grid9{margin:auto 22px 0;padding-top:13px;display:grid;grid-template-columns:repeat(3,1fr);
+  gap:8px;position:relative}
+.cell{background:#fff;border-radius:12px;height:80px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:4px;position:relative;
+  box-shadow:0 2px 8px rgba(76,29,149,.16)}
+.cell .ic{font-size:23px;line-height:1}
+.cell .nm{font-size:10.5px;color:#4b5563;text-align:center;line-height:1.25;padding:0 4px}
+.cell.win{outline:2px solid #fbbf24;outline-offset:-2px;background:#fffbeb}
+.cell.dark{background:#f4f1fb}
+.cell.dark .nm{color:#9691a8}
+.draw{background:linear-gradient(160deg,#fbbf24,#f97316);border-radius:12px;height:80px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  position:relative;box-shadow:0 6px 16px rgba(249,115,22,.45)}
+.draw .t1{font-size:17px;font-weight:700;color:#fff;letter-spacing:2px}
+.draw .t2{font-size:9.5px;color:#fff3d6;letter-spacing:.5px}
+.aleft{margin:12px 22px auto;text-align:center;font-size:11px;color:#fff;opacity:.92;line-height:1.6}
+
+/* ── 弹窗 / 弹层 ── */
+.mask{position:absolute;inset:0;background:rgba(17,24,39,.55);display:flex;align-items:center;
+  justify-content:center;z-index:5}
+.pop{width:274px;background:#fff;border-radius:19px;padding:26px 22px 20px;text-align:center;
+  position:relative;box-shadow:0 18px 44px rgba(15,23,42,.3)}
+.pop .glow{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:96px;height:96px;
+  border-radius:50%;background:radial-gradient(circle,#fde68a 0%,rgba(253,230,138,0) 70%);z-index:-1}
+.pop .pic{font-size:52px;line-height:1;margin-bottom:11px}
+.pop .pnm{font-size:16.5px;font-weight:700;color:#1f2937;margin-bottom:9px}
+.pop .ptx{font-size:12.5px;color:#6b7280;line-height:1.7;padding:0 4px;position:relative}
+.pop .pbtn{margin-top:19px;height:42px;border-radius:11px;background:linear-gradient(160deg,#fbbf24,#f97316);
+  color:#fff;font-size:15px;font-weight:600;display:flex;align-items:center;justify-content:center;
+  border:none;width:100%;font-family:inherit;cursor:pointer;position:relative}
+.pop .palt{margin-top:9px;font-size:12px;color:#a4aebb}
+
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;
+  max-height:82%;display:flex;flex-direction:column;z-index:5;
+  box-shadow:0 -8px 30px rgba(15,23,42,.22)}
+.sheet .sh{flex:none;padding:15px 18px 11px;border-bottom:1px solid #f1f5f9;position:relative;
+  display:flex;align-items:center;justify-content:space-between}
+.sheet .sh .t{font-size:15px;font-weight:700;color:#1f2937}
+.sheet .sh .x{color:#a4aebb;font-size:17px;line-height:1;font-style:normal}
+.sheet .sb{flex:1;overflow:auto;padding:6px 18px 22px}
+.rule{padding:11px 0;border-bottom:1px dashed #f1f5f9;position:relative}
+.rule:last-child{border-bottom:none}
+.rule .rt{font-size:13px;font-weight:600;color:#6d28d9;margin-bottom:5px}
+.rule .rb{font-size:12px;color:#4b5563;line-height:1.75}
+
+/* ── 我的奖品页 ── */
+.tabs{display:flex;padding:0 8px;background:#fff;border-bottom:1px solid #eef1f5;flex:none;
+  position:relative}
+.tab{padding:11px 13px 10px;font-size:13px;color:#6b7280;position:relative;white-space:nowrap}
+.tab.on{color:#7c3aed;font-weight:600}
+.tab.on::after{content:"";position:absolute;left:13px;right:13px;bottom:0;height:2.5px;
+  border-radius:2px;background:#7c3aed}
+.lbody{flex:1;background:#f5f5f7;padding:13px 14px 20px;display:flex;flex-direction:column;gap:11px}
+.pcard{background:#fff;border-radius:13px;padding:14px;position:relative;
+  box-shadow:0 1px 3px rgba(15,23,42,.06)}
+.ptop{display:flex;gap:12px}
+.pthumb{width:60px;height:60px;border-radius:10px;background:#f6f4fc;flex:none;display:flex;
+  align-items:center;justify-content:center;font-size:27px}
+.pinfo{flex:1;min-width:0}
+.pname{font-size:14.5px;font-weight:600;color:#1f2937}
+.psub{font-size:11.5px;color:#8b95a5;margin-top:5px;line-height:1.6}
+.face{font-size:20px;font-weight:700;color:#e5484d;letter-spacing:.3px}
+.tag{font-style:normal;font-size:11.5px;font-weight:600;padding:2.5px 9px;border-radius:6px}
+.tag.w{background:#fef3c7;color:#b45309}
+.tag.d{background:#dbeafe;color:#1d4ed8}
+.tag.s{background:#d1fae5;color:#047857}
+.tag.c{background:#eef2f6;color:#64748b}
+.pdash{height:1px;background:#f1f5f9;margin:12px 0 10px}
+.pfoot{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative}
+.pfoot .exp{font-size:11.5px;color:#8b95a5;flex:1;min-width:0;line-height:1.5}
+.pbtn{height:32px;border-radius:9px;font-size:13px;font-weight:600;padding:0 17px;cursor:pointer;
+  font-family:inherit;border:1px solid transparent;background:#7c3aed;color:#fff;
+  flex:none;white-space:nowrap}
+.pbtn.gh{background:#fff;border-color:#e2e8f0;color:#5b6577}
+.pbtn.gold{background:linear-gradient(160deg,#fbbf24,#f97316)}
+.tagsrow{display:flex;gap:7px;align-items:center}
+
+/* ── 表单页 ── */
+.nbody{flex:1;background:#f5f5f7;padding:12px 14px 10px}
+.sec{background:#fff;border-radius:13px;margin-bottom:11px;position:relative}
+.sec-h{font-size:12.5px;font-weight:700;color:#6d28d9;padding:13px 15px 8px;letter-spacing:.2px;
+  position:relative}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;height:32px;
+  padding:0 15px;font-size:12.5px;border-top:1px solid #f1f5f9;position:relative}
+.sec-h + .row{border-top:none}
+.row > span{color:#8b95a5;flex:none}
+.row b{font-weight:500;color:#1f2937;text-align:right;display:flex;align-items:center}
+.nbody .row{height:45px;font-size:13.5px}
+.nbody .row > span{color:#5b6577}
+.nbody .row b{justify-content:flex-end}
+.nbody .row b.ro{color:#8b95a5;font-weight:400}
+.nbody .row b.dim{color:#b6bec9;font-weight:400}
+.nbody .row b.inp{display:block;background:#f6f8fa;border-radius:8px;padding:7px 11px;
+  font-weight:400;max-width:222px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chev{color:#c4ccd6;font-style:normal;font-size:16px;margin-left:7px;line-height:1;font-weight:400}
+.rq{color:#e5484d;font-style:normal;margin-left:2px}
+.foot{flex:none;background:#fff;border-top:1px solid #eef1f5;padding:11px 15px 22px;position:relative}
+.btn{height:44px;border-radius:11px;font-size:15px;font-weight:600;cursor:pointer;width:100%;
+  font-family:inherit;border:1px solid transparent;background:#7c3aed;color:#fff}
+.fhint{text-align:center;font-size:11.5px;color:#a4aebb;margin-top:9px}
+
+/* ── 物流进度页 ── */
+.dbody{flex:1;background:#f5f5f7;padding:12px 0 10px}
+.hero{margin:0 14px 11px;border-radius:13px;padding:17px;display:flex;align-items:center;gap:13px;
+  color:#fff;position:relative;background:linear-gradient(135deg,#8b5cf6,#6d28d9)}
+.hico{width:20px;height:20px;flex:none;display:flex}
+.htxt{font-size:19px;font-weight:700;letter-spacing:.4px}
+.hsub{font-size:12px;opacity:.92;margin-top:4px;line-height:1.35}
+.dbody .sec{margin:0 14px 10px}
+.tl{padding:5px 15px 7px;position:relative}
+.tli{display:flex;gap:11px;position:relative;padding-bottom:9px}
+.tli:last-child{padding-bottom:2px}
+.tli::before{content:"";position:absolute;left:5.2px;top:15px;bottom:0;width:1.5px;background:#e8edf2}
+.tli:last-child::before{display:none}
+.dot{width:11.5px;height:11.5px;border-radius:50%;background:#dfe5ec;flex:none;margin-top:4px;
+  position:relative;z-index:1}
+.tli.done .dot{background:#7c3aed}
+.tli.now .dot{background:#f59e0b;box-shadow:0 0 0 3.5px #fef3c7}
+.tlt{font-size:12.5px;font-weight:600;color:#1f2937}
+.tli.now .tlt{color:#b45309}
+.tls{font-size:11.5px;color:#9aa4b2;margin-top:3px}
+.copy{font-size:11.5px;color:#7c3aed;margin-left:8px}
+
+/* 窗口窄的时候只收边距，原型和备注始终左右并排，不上下堆 */
+@media (max-width:1400px){
+  .stage{padding:26px 20px 50px}
+  .srbody{gap:22px}
+  .note{padding:16px 16px 18px}
+}
+@media print{
+  @page{size:A3 portrait;margin:8mm}
+  .stage{padding:0}
+  body{background:#fff}
+  .srow{break-inside:avoid}
+  .ph{box-shadow:none;border-color:#cbd5e1}
+  .note{box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage"><div class="board" id="board">
+
+<section class="srow"><div class="srt"><span class="no">①</span>抽奖活动页</div><div class="srbody"><div class="phwrap"><div class="ph"><div class="act"><div class="actbar"><span>9:41</span><span style="opacity:.9">⋯</span></div><div class="ahead"><i class="mk" style="right:8px;top:16px;transform:none">1</i><div class="aname">幸运九宫格</div><div class="atime">活动时间 2026-10-05 00:00 — 2026-10-07 24:00</div><div class="anav"><span class="lnk"><i class="mk" style="right:-11px">3</i>活动规则 ›</span><span class="mine"><i class="mk" style="right:-11px">4</i>我的奖品</span></div></div><div class="bcast"><i class="mk" style="right:-11px">2</i><span class="ic">🔔</span><span class="tx">恭喜 138****6621 抽中 10 元无门槛券</span></div><div class="leftc">剩余抽奖次数 <em>3</em> 次<i class="mk" style="right:-11px">5</i></div><div class="grid9"><i class="mk" style="right:-11px;top:-4px;transform:none">6</i><div class="cell"><span class="ic">🎟️</span><span class="nm">10元无门槛券</span></div><div class="cell"><span class="ic">🍀</span><span class="nm">谢谢参与</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">满100减20券</span></div><div class="cell"><span class="ic">🎁</span><span class="nm">保温杯</span></div><div class="draw"><i class="mk" style="right:-11px">7</i><span class="t1">抽奖</span><span class="t2">消耗 1 次</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">5元券</span></div><div class="cell dark"><span class="ic">🍀</span><span class="nm">谢谢参与</span></div><div class="cell"><span class="ic">🎁</span><span class="nm">双肩包</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">8.8折券</span></div></div><div class="aleft">每个账号每天最多抽 5 次<br>奖品以实物为准，图片仅供参考</div></div></div></div><div class="note"><div class="nh">需求备注</div><ol><li>入口：首页右角标「抽奖」、我的 → 会员 → 抽奖，两个入口都进这一页。活动名称、活动时间只读，取后台活动配置</li><li>中奖播报：横向滚动，播最近 24 小时的中奖记录，文案是「昵称 + 奖品名称」；近 24 小时没有中奖记录时整条隐藏</li><li>活动规则：点开规则弹层</li><li>我的奖品：进我的奖品页</li><li>剩余抽奖次数：会员等级免费次数 + 消费达标加次数 − 已抽次数，次数无上限。为 0 时抽奖按钮置灰，文案改「今日次数已用完」</li><li>九宫格：8 个格子，格子里放哪个奖品、奖品图片和名称都由后台「九宫格设置」决定</li><li>抽奖按钮：每次点击扣 1 次并调开奖接口，请求中按钮置灰不可重复点。中不中奖由后台各奖品的转到概率决定；每日抽奖上限由后台配置，超了当天不能再抽</li></ol></div></div></section>
+
+<section class="srow"><div class="srt"><span class="no">②</span>中奖弹窗</div><div class="srbody"><div class="phwrap"><div class="ph"><div class="act"><div class="actbar"><span>9:41</span><span style="opacity:.9">⋯</span></div><div class="ahead"><div class="aname">幸运九宫格</div><div class="atime">活动时间 2026-10-05 00:00 — 2026-10-07 24:00</div><div class="anav"><span class="lnk">活动规则 ›</span><span class="mine">我的奖品</span></div></div><div class="bcast"><span class="ic">🔔</span><span class="tx">恭喜 138****6621 抽中 10 元无门槛券</span></div><div class="leftc">剩余抽奖次数 <em>2</em> 次</div><div class="grid9"><div class="cell"><span class="ic">🎟️</span><span class="nm">10元无门槛券</span></div><div class="cell"><span class="ic">🍀</span><span class="nm">谢谢参与</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">满100减20券</span></div><div class="cell"><span class="ic">🎁</span><span class="nm">保温杯</span></div><div class="cell win"><span class="ic">🎟️</span><span class="nm">10元无门槛券</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">5元券</span></div><div class="cell dark"><span class="ic">🍀</span><span class="nm">谢谢参与</span></div><div class="cell"><span class="ic">🎁</span><span class="nm">双肩包</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">8.8折券</span></div></div></div><div class="mask"><i class="mk" style="left:14px;top:58%;transform:none;right:auto">4</i><div class="pop"><i class="mk" style="right:-10px;top:44px;transform:none">1</i><div class="pic">🎟️</div><div class="pnm">10 元无门槛券</div><div class="ptx">恭喜你抽中 10 元无门槛券<br>已放入「我的奖品」，可前往查看<i class="mk" style="right:-13px">2</i></div><button class="pbtn">开心收下<i class="mk" style="right:-13px">3</i></button></div></div></div><div class="altwrap"><div class="altcard"><div class="altlb">实物奖</div><div class="altpop"><div class="altpic">🎁</div><div class="altnm">小米保温杯 500ml</div><div class="alttx">恭喜你抽中小米保温杯<br>请先填写收货地址</div><div class="altbt">去填写地址</div></div></div><div class="altcard"><div class="altlb">谢谢惠顾</div><div class="altpop"><div class="altpic">🍀</div><div class="altnm">谢谢参与</div><div class="alttx">谢谢惠顾，下次再来</div><div class="altbt gray">知道了</div></div></div></div></div><div class="note"><div class="nh">需求备注</div><ol><li>奖品图片、奖品名称：取本次开奖结果；谢谢惠顾时取后台「未中奖设置」的图片和名称</li><li>弹窗文案分三种：券奖写「已放入我的奖品，可前往查看」；实物奖写「请先填写收货地址」；谢谢惠顾写「谢谢惠顾，下次再来」</li><li>按钮跟着文案变：券奖是「开心收下」，点了关闭弹窗留在活动页；实物奖是「去填写地址」，点了直接进填写收货地址；谢谢惠顾是「知道了」，点了关闭弹窗</li><li>点遮罩关闭：和点按钮一样，关掉后留在抽奖活动页。三种情况都走这个弹窗，不做 toast</li></ol></div></div></section>
+
+<section class="srow"><div class="srt"><span class="no">③</span>规则弹层</div><div class="srbody"><div class="phwrap"><div class="ph"><div class="act"><div class="actbar"><span>9:41</span><span style="opacity:.9">⋯</span></div><div class="ahead"><div class="aname">幸运九宫格</div><div class="atime">活动时间 2026-10-05 00:00 — 2026-10-07 24:00</div><div class="anav"><span class="lnk">活动规则 ›</span><span class="mine">我的奖品</span></div></div><div class="bcast"><span class="ic">🔔</span><span class="tx">恭喜 138****6621 抽中 10 元无门槛券</span></div><div class="leftc">剩余抽奖次数 <em>3</em> 次</div><div class="grid9"><div class="cell"><span class="ic">🎟️</span><span class="nm">10元无门槛券</span></div><div class="cell"><span class="ic">🍀</span><span class="nm">谢谢参与</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">满100减20券</span></div><div class="cell"><span class="ic">🎁</span><span class="nm">保温杯</span></div><div class="draw"><span class="t1">抽奖</span><span class="t2">消耗 1 次</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">5元券</span></div><div class="cell dark"><span class="ic">🍀</span><span class="nm">谢谢参与</span></div><div class="cell"><span class="ic">🎁</span><span class="nm">双肩包</span></div><div class="cell"><span class="ic">🎟️</span><span class="nm">8.8折券</span></div></div></div><div class="mask" style="align-items:flex-end"><div class="sheet"><div class="sh"><span class="t">活动规则</span><i class="mk" style="right:30px">3</i><i class="x">✕</i></div><div class="sb"><div class="rule"><i class="mk" style="right:2px">1</i><div class="rt">参与资格／对象</div><div class="rb">已完成手机号绑定的会员均可参与，每个账号独立计算次数。</div></div><div class="rule"><div class="rt">参与方式与抽奖次数</div><div class="rb">进入活动页点「抽奖」参与。不同会员等级有对应的免费次数，消费达标还可额外增加次数，次数无上限、不消耗积分。</div></div><div class="rule"><div class="rt">开奖规则</div><div class="rb">每次抽奖实时开奖，结果以系统记录为准。</div></div><div class="rule"><div class="rt">奖品领取规则</div><div class="rb">优惠券自动发放到账户，可在「我的奖品」查看；实物奖需填写收货地址后安排发货。</div></div><div class="rule"><i class="mk" style="right:2px">2</i><div class="rt">领取期限提示</div><div class="rb">实物奖请在奖品有效期内填写收货地址，逾期未填写视为放弃。</div></div></div></div></div></div></div><div class="note"><div class="nh">需求备注</div><ol><li>参与资格／对象、参与方式与抽奖次数、开奖规则、奖品领取规则、领取期限提示：五段文案全部来自后台「玩法规则」，后台没填的段落整段不展示。弹层从底部升起，内容多了在弹层内部上下滚</li><li>领取期限提示只是文案提示，抽奖系统不做超期处理，超期不补发</li><li>点弹层外遮罩或右上角 ✕ 关闭，关掉后回抽奖活动页，九宫格状态不变</li></ol></div></div></section>
+
+<section class="srow"><div class="srt"><span class="no">④</span>我的奖品页</div><div class="srbody"><div class="phwrap"><div class="ph"><div class="sbar"><span>9:41</span><span></span></div><div class="nav"><a class="bk"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M8.4 1.2 1.6 8.5l6.8 7.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="ttl">我的奖品</span><span class="rt"></span></div><div class="lbody"><div class="pcard"><i class="mk" style="right:-10px;top:22px;transform:none">1</i><div class="ptop"><div class="pinfo"><div class="pname">10 元无门槛券</div><div class="psub">满 0 元可用 · 全场通用</div><div style="margin-top:6px"><span class="tag s">已到账</span></div></div><div class="face">¥10</div></div><div class="pdash"></div><div class="pfoot"><span class="exp">有效期至 2026-10-31 · 中奖于 10-06 14:22</span><i class="mk" style="right:-13px">2</i><button class="pbtn gh">去使用</button></div></div><div class="pcard"><i class="mk" style="right:-10px;top:22px;transform:none">3</i><div class="ptop"><div class="pinfo"><div class="pname">小米保温杯 500ml</div><div class="psub">实物奖 · 需填写收货地址后发货</div><div style="margin-top:6px"><span class="tag w">待填写地址</span></div></div></div><div class="pdash"></div><div class="pfoot"><span class="exp">领取期限至 2026-10-13 · 中奖于 10-06 14:20</span><i class="mk" style="right:-13px">4</i><button class="pbtn gold">去领取</button></div></div><div class="pcard"><div class="ptop"><div class="pinfo"><div class="pname">无线鼠标</div><div class="psub">实物奖 · 收货人 张明 138****8000</div><div style="margin-top:6px"><span class="tag c">待发货</span></div></div></div><div class="pdash"></div><div class="pfoot"><span class="exp">领取期限至 2026-10-13 · 中奖于 10-06 09:15</span><button class="pbtn gh">修改地址</button></div></div><div class="pcard"><div class="ptop"><div class="pinfo"><div class="pname">双肩包</div><div class="psub">实物奖 · 顺丰速运 SF1234567890</div><div style="margin-top:6px"><span class="tag d">已发货</span></div></div></div><div class="pdash"></div><div class="pfoot"><span class="exp">领取期限至 2026-10-13 · 中奖于 10-05 19:03</span><button class="pbtn gh">查看物流</button></div></div><div class="pcard"><div class="ptop"><div class="pinfo"><div class="pname">5 元券</div><div class="psub">满 50 元可用</div><div style="margin-top:6px"><span class="tag c">已过期</span></div></div><div class="face" style="color:#b6bec9">¥5</div></div><div class="pdash"></div><div class="pfoot"><span class="exp">有效期至 2026-09-30 · 中奖于 09-20 11:40</span></div></div></div></div></div><div class="note"><div class="nh">需求备注</div><ol><li>全部按中奖时间倒序排。优惠券卡片：券名称、券面额、有效期、中奖时间、奖品状态，状态有已到账、已过期；券奖由优惠券系统直接发放到账户，抽中即到账，用户不用做任何操作</li><li>有效期、中奖时间：有效期取后台活动配置，中奖时间取本次中奖记录</li><li>实物卡片：奖品名称、有效期、中奖时间、奖品状态。状态有待填写地址、待发货、已发货、已签收、已过期；待发货没有物流进度，只能改地址</li><li>卡片按钮：待填写地址显示「去领取」，待发货显示「修改地址」，两个都进填写收货地址；已发货、已签收显示「查看物流」，进物流进度页</li></ol></div></div></section>
+
+<section class="srow"><div class="srt"><span class="no">⑤</span>填写收货地址</div><div class="srbody"><div class="phwrap"><div class="ph"><div class="sbar"><span>9:41</span><span></span></div><div class="nav"><a class="bk"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M8.4 1.2 1.6 8.5l6.8 7.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="ttl">填写收货地址</span><span class="rt"></span></div><div class="nbody"><div class="sec"><div class="sec-h">奖品信息</div><div class="row"><span>奖品</span><b class="ro">小米保温杯 500ml</b><i class="mk">1</i></div><div class="row"><span>中奖时间</span><b class="ro">2026-10-06 14:20</b></div></div><div class="sec"><div class="sec-h">收货信息</div><div class="row"><span>收货人姓名<i class="rq">*</i></span><b class="inp">张明</b><i class="mk">2</i></div><div class="row"><span>手机号<i class="rq">*</i></span><b class="inp">138 0013 8000</b></div><div class="row"><span>所在地区<i class="rq">*</i></span><b class="">江苏省 苏州市 姑苏区<i class="chev">›</i></b></div><div class="row"><span>详细地址<i class="rq">*</i></span><b class="inp">平江路 88 号 3 幢 502</b></div></div></div><div class="foot"><i class="mk" style="right:7px">3</i><button class="btn">提交</button><div class="fhint">请核对收货信息后再提交</div></div></div></div><div class="note"><div class="nh">需求备注</div><ol><li>奖品、中奖时间：只读，带出上一步点进来的那张实物奖，用户不能改</li><li>四个字段全部必填。手机号校验中国大陆 11 位；所在地区用三级联动选择；详细地址限 60 字</li><li>提交：校验通过后生成兑换单推给订单系统，奖品状态变「待发货」，跳回我的奖品页。发货前可以再进这一页改地址，按钮文案变「保存修改」；已发货后不可修改</li></ol></div></div></section>
+
+<section class="srow"><div class="srt"><span class="no">⑥</span>物流进度</div><div class="srbody"><div class="phwrap"><div class="ph"><div class="sbar"><span>9:41</span><span></span></div><div class="nav"><a class="bk"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M8.4 1.2 1.6 8.5l6.8 7.3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></a><span class="ttl">物流进度</span><span class="rt"></span></div><div class="dbody"><div class="hero"><i class="mk" style="right:14px">1</i><i class="hico"><svg width="20" height="20" viewBox="0 0 20 20" fill="none"><path d="M2 6.2 10 2l8 4.2v7.6L10 18l-8-4.2z" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/><path d="M2 6.2 10 10.4l8-4.2M10 10.4V18" stroke="#fff" stroke-width="1.7" stroke-linejoin="round"/></svg></i><div><div class="htxt">运输中</div><div class="hsub">包裹已从苏州转运中心发出</div></div></div><div class="sec"><div class="sec-h">配送信息</div><div class="row"><span>奖品</span><b class="">双肩包</b></div><div class="row"><span>发货状态</span><b class="">已发货</b><i class="mk">2</i></div><div class="row"><span>物流公司</span><b class="">顺丰速运</b></div><div class="row"><span>物流单号</span><b class="">SF1234567890<span class="copy">复制</span></b><i class="mk">3</i></div></div><div class="sec"><div class="sec-h">物流轨迹</div><div class="tl"><i class="mk" style="right:6px;top:24px;transform:none">4</i><div class="tli now"><i class="dot"></i><div><div class="tlt">运输中</div><div class="tls">苏州转运中心已发出，下一站 上海分拨中心</div><div class="tls">2026-10-06 09:12</div></div></div><div class="tli done"><i class="dot"></i><div><div class="tlt">已揽收</div><div class="tls">顺丰速运已揽收</div><div class="tls">2026-10-05 20:41</div></div></div><div class="tli done"><i class="dot"></i><div><div class="tlt">已发货</div><div class="tls">商家已发货</div><div class="tls">2026-10-05 18:30</div></div></div></div></div></div></div></div><div class="note"><div class="nh">需求备注</div><ol><li>顶部状态区：文案跟发货状态走 —— 待发货不展示这块；已发货显示「运输中」，已签收显示「已签收」</li><li>发货状态：待发货、已发货、已签收，由订单系统回传</li><li>物流公司、物流单号：也是订单系统回传，单号可复制。待发货时整行不展示</li><li>物流轨迹：订单系统回传，倒序排列，最新一条在最上面并高亮，上面带时间</li></ol></div></div></section>
+
+</div></div>
+
+<style id="it-style">
+/* ══════════ 可交互演示层：只在原 C 端原型上叠加 ══════════ */
+body.it .stage{padding-top:82px}
+body.it .srow{scroll-margin-top:72px}
+.itbar{position:fixed;left:0;right:0;top:0;z-index:9990;height:56px;display:flex;align-items:center;
+  gap:9px;padding:0 16px;background:#0f172a;color:#e5e7eb;font-size:12.5px;
+  box-shadow:0 2px 12px rgba(15,23,42,.28)}
+.itbar .t{font-size:13px;font-weight:700;color:#fff;letter-spacing:.3px;white-space:nowrap}
+.itbar .t em{font-style:normal;font-weight:400;color:#8b95a5;margin-left:9px;font-size:11.5px}
+.itbar .sp{flex:1}
+.itbar button{height:30px;padding:0 12px;border-radius:7px;border:1px solid #334155;background:#1e293b;
+  color:#e2e8f0;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.itbar button:hover{background:#2b3a4f}
+.itbar button:disabled{opacity:.32;cursor:default}
+.itbar button:hover:disabled{background:#1e293b}
+.itbar button.on{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
+.itbar select{height:30px;padding:0 8px;border-radius:7px;border:1px solid #334155;background:#1e293b;
+  color:#e2e8f0;font-size:12.5px;font-family:inherit;max-width:300px;text-overflow:ellipsis}
+.itbar .cnt{color:#94a3b8;font-size:12px;min-width:52px;text-align:center;
+  font-variant-numeric:tabular-nums}
+body.it-demo .srow{display:none}
+body.it-demo .srow.active{display:block}
+body.it-nonote .note{display:none}
+
+/* 抽奖 */
+body.it .draw{cursor:pointer;user-select:none}
+body.it .grid9 .cell.hit{outline:2px solid #fbbf24;outline-offset:-2px;background:#fffbeb}
+body.it .draw.busy{pointer-events:none;filter:saturate(.55)}
+body.it .draw.off{background:#e9edf2;box-shadow:none}
+body.it .draw.off .t1{font-size:12px;letter-spacing:0;color:#94a3b8}
+body.it .draw.off .t2{color:#b6bec9}
+/* 中奖播报横向滚动 */
+body.it .bcast .tx{animation:itmar 9s linear infinite}
+@keyframes itmar{from{transform:translateX(0)}to{transform:translateX(-42%)}}
+
+/* 可点的元素 */
+body.it .lnk,body.it .mine,body.it .nav .bk,body.it .pbtn,body.it .btn,
+body.it .sh .x,body.it .copy,body.it .nbody .row b:not(.ro){cursor:pointer}
+body.it .nbody .row b.inp{cursor:text}
+body.it .nbody .row b.inp[contenteditable]:focus{outline:none;
+  box-shadow:0 0 0 2px rgba(124,58,237,.22);background:#fff}
+
+/* 手机里的 toast */
+.ittoast-in{position:absolute;left:50%;bottom:96px;transform:translate(-50%,10px);z-index:30;
+  background:rgba(17,24,39,.88);color:#fff;font-size:12.5px;line-height:1.5;padding:8px 16px;
+  border-radius:9px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;
+  max-width:86%;text-align:center}
+.ittoast-in.on{opacity:1;transform:translate(-50%,0)}
+/* 地区三级联动 */
+.itrow{padding:13px 0;border-bottom:1px solid #f1f5f9;font-size:13.5px;color:#1f2937;
+  cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.itrow:last-child{border-bottom:none}
+.itrow:active{color:#7c3aed}
+.itback{padding:11px 0;font-size:12.5px;color:#7c3aed;border-bottom:1px solid #f1f5f9;
+  cursor:pointer}
+</style>
+<div class="itbar" id="itbar">
+  <span class="t">九宫格抽奖 · C 端原型<em>可交互演示　← → 换屏</em></span>
+  <button id="itPrev">‹ 上一屏</button>
+  <button id="itNext">下一屏 ›</button>
+  <select id="itSel"></select>
+  <span class="cnt" id="itCnt"></span>
+  <span class="sp"></span>
+  <button id="itReset" title="次数、弹窗、奖品状态全部回到初始">重来</button>
+  <button id="itNote">隐藏备注</button>
+  <button id="itMode">平铺全部</button>
+</div>
+<script>
+(function(){
+  'use strict';
+  document.body.classList.add('it', 'it-demo');
+
+  var rows = [].slice.call(document.querySelectorAll('.board > .srow'));
+  var TOTAL = rows.length;
+
+  /* ────────── 小工具 ────────── */
+  function each(scope, sel, fn){
+    [].slice.call(scope.querySelectorAll(sel)).forEach(fn);
+  }
+  function txt(el){ return el ? (el.textContent || '').replace(/\s+/g, '') : ''; }
+  function plain(el){
+    if(!el) return '';
+    var c = el.cloneNode(true);
+    [].slice.call(c.querySelectorAll('.mk')).forEach(function(x){ x.parentNode.removeChild(x); });
+    return (c.textContent || '').replace(/[\s​ ]/g, '');
+  }
+  function on(el, fn){
+    if(!el) return;
+    el.addEventListener('click', function(e){ e.stopPropagation(); fn(e, el); });
+  }
+  function S(n){ return rows[n - 1]; }
+
+  /* 手机里的 toast */
+  function toast(msg, ph){
+    if(!ph){ return; }
+    var t = ph.querySelector('.ittoast-in');
+    if(!t){
+      t = document.createElement('div');
+      t.className = 'ittoast-in';
+      ph.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('on');
+    clearTimeout(t._h);
+    t._h = setTimeout(function(){ t.classList.remove('on'); }, 1900);
+  }
+
+  /* ────────── 导航条 ────────── */
+  var sel = document.getElementById('itSel');
+  var cnt = document.getElementById('itCnt');
+  var prevB = document.getElementById('itPrev');
+  var nextB = document.getElementById('itNext');
+  var modeB = document.getElementById('itMode');
+  var noteB = document.getElementById('itNote');
+  var resB = document.getElementById('itReset');
+  var cur = 1;
+
+  function isDemo(){ return document.body.classList.contains('it-demo'); }
+
+  rows.forEach(function(r, i){
+    r.setAttribute('data-s', String(i + 1));
+    var o = document.createElement('option');
+    o.value = String(i + 1);
+    o.textContent = txt(r.querySelector('.srt'));
+    sel.appendChild(o);
+  });
+
+  function go(n){
+    n = Number(n) || 1;
+    if(n < 1) n = 1;
+    if(n > TOTAL) n = TOTAL;
+    cur = n;
+    for(var i = 0; i < TOTAL; i++){
+      if(isDemo()) rows[i].classList.toggle('active', i === n - 1);
+      else rows[i].classList.remove('active');
+    }
+    sel.value = String(n);
+    cnt.textContent = n + ' / ' + TOTAL;
+    prevB.disabled = n <= 1;
+    nextB.disabled = n >= TOTAL;
+    if(n === 5) fillPrize();
+    if(isDemo()) window.scrollTo(0, 0);
+    else if(rows[n - 1]) rows[n - 1].scrollIntoView({block: 'start'});
+    try{ history.replaceState(null, '', '#s' + n); }catch(err){}
+  }
+
+  on(prevB, function(){ go(cur - 1); });
+  on(nextB, function(){ go(cur + 1); });
+  sel.addEventListener('change', function(){ go(sel.value); });
+
+  on(modeB, function(){
+    if(isDemo()){
+      document.body.classList.remove('it-demo');
+      document.body.classList.add('it-flat');
+      modeB.textContent = '单屏演示';
+      modeB.classList.add('on');
+      go(cur);
+    } else {
+      document.body.classList.add('it-demo');
+      document.body.classList.remove('it-flat');
+      modeB.textContent = '平铺全部';
+      modeB.classList.remove('on');
+      go(cur);
+    }
+  });
+
+  on(noteB, function(){
+    var off = document.body.classList.toggle('it-nonote');
+    noteB.textContent = off ? '显示备注' : '隐藏备注';
+    noteB.classList.toggle('on', off);
+  });
+
+  on(resB, function(){
+    var u = location.href.split('#')[0] + '#s1';
+    location.href = u;
+    location.reload();
+  });
+
+  document.addEventListener('keydown', function(e){
+    var tg = e.target && e.target.tagName;
+    if(tg === 'INPUT' || tg === 'TEXTAREA' || (e.target && e.target.isContentEditable)) return;
+    if(e.key === 'ArrowLeft') go(cur - 1);
+    else if(e.key === 'ArrowRight') go(cur + 1);
+  });
+
+  /* ══════════════════ ① 抽奖活动页 ══════════════════ */
+  var s1 = S(1);
+  var ph1 = s1.querySelector('.ph');
+  var grid = s1.querySelector('.grid9');
+  var drawBtn = s1.querySelector('.draw');
+  var leftEm = s1.querySelector('.leftc em');
+
+  var left = 3;      /* 剩余次数，跟原型上写的一致 */
+  var seq = 0;       /* 第几次抽奖，用来轮换三种结果 */
+  var spinning = false;
+  var RING = [0, 1, 2, 5, 8, 7, 6, 3];   /* 外圈八个格子的顺时针顺序 */
+
+  var RESULTS = [
+    { type: 'coupon', idx: 0, ic: '🎟️', nm: '10 元无门槛券',
+      txt: '恭喜你抽中 10 元无门槛券<br>已放入「我的奖品」，可前往查看', btn: '开心收下' },
+    { type: 'goods', idx: 3, ic: '🎁', nm: '小米保温杯 500ml',
+      txt: '恭喜你抽中小米保温杯<br>请先填写收货地址', btn: '去填写地址' },
+    { type: 'none', idx: 1, ic: '🍀', nm: '谢谢参与',
+      txt: '谢谢惠顾，下次再来', btn: '知道了' }
+  ];
+
+  function updateLeft(){
+    if(leftEm) leftEm.textContent = String(left);
+    /* 弹窗、规则那两屏的剩余次数也跟着走 */
+    each(document, '.leftc em', function(e){ e.textContent = String(left); });
+    if(!drawBtn) return;
+    var t1 = drawBtn.querySelector('.t1'), t2 = drawBtn.querySelector('.t2');
+    if(left <= 0){
+      drawBtn.classList.add('off');
+      if(t1) t1.textContent = '今日次数已用完';
+      if(t2) t2.textContent = '明天再来';
+    } else {
+      drawBtn.classList.remove('off');
+      if(t1) t1.textContent = '抽奖';
+      if(t2) t2.textContent = '消耗 1 次';
+    }
+  }
+
+  function hitCells(){
+    return [].slice.call(grid ? grid.children : []).filter(function(c){
+      return c.classList.contains('cell') || c.classList.contains('draw');
+    });
+  }
+
+  /* 转盘动画：从当前格顺时针跑，落定在中奖格 */
+  function spin(target, done){
+    var cells = hitCells();
+    var pos = RING.indexOf(target);
+    if(pos < 0) pos = 0;
+    var N = RING.length * 2 + pos;    /* 至少转两整圈 */
+    var k = 0;
+    function step(){
+      cells.forEach(function(c){ c.classList.remove('hit'); });
+      var idx = RING[k % RING.length];
+      if(cells[idx]) cells[idx].classList.add('hit');
+      if(k >= N){ done(); return; }
+      k++;
+      var p = k / N;
+      setTimeout(step, 55 + 95 * p * p);
+    }
+    step();
+  }
+
+  function openResult(r){
+    setResult(r);
+    go(2);
+  }
+
+  /* 抽一次（animate=false 用于测试和重放） */
+  function draw(animate){
+    if(spinning) return false;
+    if(left <= 0){ toast('今日次数已用完，明天再来', ph1); return false; }
+    var r = RESULTS[seq % RESULTS.length];
+    seq++;
+    spinning = true;
+    drawBtn.classList.add('busy');
+    function land(immediate){
+      spinning = false;
+      left--;
+      updateLeft();
+      drawBtn.classList.remove('busy');
+      if(immediate) openResult(r);
+      else setTimeout(function(){ openResult(r); }, 300);
+    }
+    if(animate === false){
+      var cells = hitCells();
+      cells.forEach(function(c){ c.classList.remove('hit'); });
+      if(cells[r.idx]) cells[r.idx].classList.add('hit');
+      land(true);
+      return true;
+    }
+    spin(r.idx, function(){ land(false); });
+    return true;
+  }
+
+  on(s1.querySelector('.lnk'), function(){ go(3); });
+  on(s1.querySelector('.mine'), function(){ go(4); });
+  on(drawBtn, function(){ draw(true); });
+
+  /* ══════════════════ ② 中奖弹窗 ══════════════════ */
+  var s2 = S(2);
+  var s2grid = s2.querySelector('.grid9');
+
+  function setResult(r){
+    /* 中间那格换成刚中的奖品 */
+    var cells = [].slice.call(s2grid.children).filter(function(c){
+      return c.classList.contains('cell');
+    });
+    cells.forEach(function(c, i){
+      c.classList.remove('win');
+      if(i === 4){
+        c.className = 'cell win';
+        c.innerHTML = '<span class="ic">' + r.ic + '</span><span class="nm">' + r.nm + '</span>';
+      }
+    });
+    var pop = s2.querySelector('.pop');
+    if(!pop) return;
+    pop.querySelector('.pic').textContent = r.ic;
+    pop.querySelector('.pnm').textContent = r.nm;
+
+    var ptx = pop.querySelector('.ptx');
+    var pmk = ptx.querySelector('.mk');
+    ptx.innerHTML = r.txt;
+    if(pmk) ptx.appendChild(pmk);
+
+    var btn = pop.querySelector('.pbtn');
+    var bmk = btn.querySelector('.mk');
+    btn.innerHTML = r.btn;
+    if(bmk) btn.appendChild(bmk);
+
+    s2.dataset.kind = r.type;
+  }
+
+  on(s2.querySelector('.pbtn'), function(){
+    if(s2.dataset.kind === 'goods') go(5);
+    else go(1);
+  });
+  on(s2.querySelector('.mask'), function(e){
+    if(e.target.classList.contains('mask')) go(1);
+  });
+
+  /* ══════════════════ ③ 规则弹层 ══════════════════ */
+  var s3 = S(3);
+  on(s3.querySelector('.sheet .x'), function(){ go(1); });
+  on(s3.querySelector('.mask'), function(e){
+    if(e.target.classList.contains('mask')) go(1);
+  });
+
+  /* ══════════════════ ④ 我的奖品页 ══════════════════ */
+  var s4 = S(4);
+  var ph4 = s4.querySelector('.ph');
+  var pickedCard = null;
+
+  on(s4.querySelector('.nav .bk'), function(){ go(1); });
+
+  each(s4, '.pcard', function(card){
+    var btn = card.querySelector('.pbtn');
+    if(!btn) return;
+    on(btn, function(){
+      var t = plain(btn);
+      if(t.indexOf('去使用') >= 0){
+        toast('券码已复制，下单时自动抵扣', ph4);
+      } else if(t.indexOf('查看物流') >= 0){
+        go(6);
+      } else {
+        pickedCard = card;
+        go(5);
+      }
+    });
+  });
+
+  /* ══════════════════ ⑤ 填写收货地址 ══════════════════ */
+  var s5 = S(5);
+  var ph5 = s5.querySelector('.ph');
+  var f5 = [].slice.call(s5.querySelectorAll('.nbody .row'));
+  /* f5: 0 奖品 1 中奖时间 2 姓名 3 手机号 4 所在地区 5 详细地址 */
+
+  on(s5.querySelector('.nav .bk'), function(){ go(4); });
+
+  [2, 3, 5].forEach(function(i){
+    var b = f5[i] && f5[i].querySelector('b');
+    if(!b) return;
+    b.setAttribute('contenteditable', 'true');
+    b.addEventListener('focus', function(){
+      if(f5[i].dataset.empty === '1'){ b.textContent = ''; f5[i].dataset.empty = ''; }
+    });
+    b.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){ e.preventDefault(); b.blur(); }
+    });
+  });
+
+  /* 所在地区：三级联动 */
+  var AREA = [
+    { n: '江苏省', c: [
+      { n: '苏州市', d: ['姑苏区', '工业园区', '吴中区'] },
+      { n: '南京市', d: ['玄武区', '鼓楼区'] }
+    ]},
+    { n: '浙江省', c: [
+      { n: '杭州市', d: ['西湖区', '滨江区'] },
+      { n: '宁波市', d: ['海曙区', '鄞州区'] }
+    ]},
+    { n: '上海市', c: [
+      { n: '上海市', d: ['黄浦区', '浦东新区', '徐汇区'] }
+    ]}
+  ];
+
+  function openArea(){
+    var mask = document.createElement('div');
+    mask.className = 'mask';
+    mask.style.alignItems = 'flex-end';
+    var sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = '<div class="sh"><span class="t">选择所在地区</span><i class="x">✕</i></div>' +
+                      '<div class="sb itarea"></div>';
+    mask.appendChild(sheet);
+    ph5.appendChild(mask);
+    var body = sheet.querySelector('.itarea');
+    var pk = { p: '', c: '' };
+
+    function close(){ if(mask.parentNode) mask.parentNode.removeChild(mask); }
+    sheet.querySelector('.x').addEventListener('click', close);
+    mask.addEventListener('click', function(e){ if(e.target === mask) close(); });
+
+    function list(items, label, back){
+      body.innerHTML = '';
+      if(back){
+        var bk = document.createElement('div');
+        bk.className = 'itback';
+        bk.textContent = '‹ ' + label;
+        bk.addEventListener('click', back);
+        body.appendChild(bk);
+      }
+      items.forEach(function(it){
+        var d = document.createElement('div');
+        d.className = 'itrow';
+        d.textContent = it.n;
+        d.addEventListener('click', function(){ it.go(); });
+        body.appendChild(d);
+      });
+    }
+
+    function pickProv(){
+      list(AREA.map(function(p){
+        return { n: p.n, go: function(){ pk.p = p.n; pickCity(p); } };
+      }), '选择省份', null);
+    }
+
+    function pickCity(p){
+      list(p.c.map(function(c){
+        return { n: c.n, go: function(){ pk.c = c.n; pickDist(c); } };
+      }), '‹ 返回省份', pickProv);
+    }
+
+    function pickDist(c){
+      list(c.d.map(function(dn){
+        return { n: dn, go: function(){ setArea(pk.p, pk.c, dn); close(); } };
+      }), '‹ 返回城市', function(){ pickCity({ n: pk.p, c: AREA.filter(function(x){ return x.n === pk.p; })[0].c }); });
+    }
+
+    pickProv();
+  }
+
+  function setArea(p, c, d){
+    var b = f5[4] && f5[4].querySelector('b');
+    if(!b) return;
+    b.childNodes[0].nodeValue = p + ' ' + c + ' ' + d;
+    f5[4].dataset.empty = '';
+  }
+
+  on(f5[4] && f5[4].querySelector('b'), openArea);
+
+  on(s5.querySelector('.btn'), function(){
+    var nm = plain(f5[2].querySelector('b'));
+    var tel = plain(f5[3].querySelector('b')).replace(/[^\d]/g, '');
+    var area = plain(f5[4].querySelector('b'));
+    var addr = plain(f5[5].querySelector('b'));
+    if(!nm){ toast('请填写收货人姓名', ph5); return; }
+    if(!/^1[3-9]\d{9}$/.test(tel)){ toast('手机号填 11 位，别带分隔符', ph5); return; }
+    if(!area || area.indexOf('选择') >= 0){ toast('请选择所在地区', ph5); return; }
+    if(!addr){ toast('请填写详细地址', ph5); return; }
+    if(addr.length > 60){ toast('详细地址最多 60 字', ph5); return; }
+
+    if(pickedCard){
+      var tag = pickedCard.querySelector('.tag');
+      if(tag){ tag.className = 'tag c'; tag.textContent = '待发货'; }
+      var b = pickedCard.querySelector('.pbtn');
+      if(b){ b.className = 'pbtn gh'; b.textContent = '修改地址'; }
+      var sub = pickedCard.querySelector('.psub');
+      if(sub) sub.textContent = '实物奖 · 收货人 ' + nm + ' ' + tel.slice(0, 3) + '****' + tel.slice(7, 11);
+    }
+    toast('提交成功，奖品状态变「待发货」', ph5);
+    setTimeout(function(){ go(4); }, 800);
+  });
+
+  /* 从我的奖品点进来时，带出那张奖品的奖品名和中奖时间 */
+  function fillPrize(){
+    if(!pickedCard) return;
+    var pnm = pickedCard.querySelector('.pname');
+    var exp = pickedCard.querySelector('.exp');
+    if(pnm && f5[0]) f5[0].querySelector('b').childNodes[0].nodeValue = (pnm.textContent || '').trim();
+    if(exp && f5[1]){
+      var m = /中奖于\s*([\d-]+)/.exec(exp.textContent || '');
+      if(m) f5[1].querySelector('b').childNodes[0].nodeValue = '2026-' + m[1];
+    }
+    var tag = pickedCard.querySelector('.tag');
+    var btn5 = s5.querySelector('.btn');
+    if(btn5) btn5.textContent = (tag && txt(tag).indexOf('待发货') >= 0) ? '保存修改' : '提交';
+  }
+
+  /* ══════════════════ ⑥ 物流进度 ══════════════════ */
+  var s6 = S(6);
+  var ph6 = s6.querySelector('.ph');
+
+  on(s6.querySelector('.nav .bk'), function(){ go(4); });
+  on(s6.querySelector('.copy'), function(){
+    var row = [].slice.call(s6.querySelectorAll('.row')).filter(function(r){
+      return txt(r.querySelector('span')).indexOf('物流单号') >= 0;
+    })[0];
+    var code = row ? (row.querySelector('b').firstChild.nodeValue || '') : '';
+    code = code.replace(/\s/g, '');
+    try{
+      if(navigator.clipboard) navigator.clipboard.writeText(code);
+    }catch(err){}
+    toast('物流单号已复制', ph6);
+  });
+
+  /* ────────── 起点 ────────── */
+  var m = /#s(\d+)/.exec(location.hash || '');
+  go(m ? Number(m[1]) : 1);
+
+  /* 给自动化测试留个口子 */
+  window.__it = {
+    go: function(n){ go(n); },
+    draw: draw,
+    left: function(){ return left; },
+    kind: function(){ return s2.dataset.kind || ''; },
+    cur: function(){ return cur; }
+  };
+})();
+</script>
+
+</body>
+</html>

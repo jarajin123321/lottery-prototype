@@ -1,0 +1,2286 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>营销活动后台 · 抽奖活动原型（带需求备注）</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#eef1f5;color:#111827;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.stage{padding:24px 18px 60px}
+.board{display:flex;flex-direction:column;gap:34px}
+
+/* ── 每屏一行 ── */
+.srow{display:block}
+.srt{font-size:15px;font-weight:700;color:#0f172a;margin-bottom:14px;display:flex;
+  align-items:center;gap:9px}
+.srt .no{width:23px;height:23px;border-radius:50%;background:#0f172a;color:#fff;font-size:12.5px;
+  display:flex;align-items:center;justify-content:center;flex:none}
+.srbody{display:flex;gap:22px;align-items:flex-start}
+.pcwrap{flex:none}
+.note{flex:1;min-width:300px;max-width:760px;background:#fff;border-radius:16px;
+  border:1px solid #d7dee7;padding:18px 20px 20px}
+.nh{font-size:13px;font-weight:700;color:#6d28d9;padding-bottom:10px;margin-bottom:13px;
+  border-bottom:1px dashed #e3ddf5;letter-spacing:.2px}
+.note ol{list-style:none;counter-reset:n}
+.note li{counter-increment:n;position:relative;padding-left:30px;margin-bottom:11px;
+  font-size:13px;line-height:1.68;color:#4b5563}
+.note li:last-child{margin-bottom:0}
+.note li::before{content:counter(n);position:absolute;left:0;top:2px;width:20px;height:20px;
+  border-radius:50%;background:#e5484d;color:#fff;font-size:11.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+/* 备注里字体 / 字号 / 颜色 / 字重全都不变 —— axhub 导 Axure 会按样式拆框 */
+.note, .note *{font-family:inherit}
+
+/* ── 序号标注 ── */
+.mk{position:absolute;right:-9px;top:14px;transform:none;width:19px;height:19px;border-radius:50%;
+  background:#e5484d;color:#fff;font-size:11px;font-weight:700;font-style:normal;
+  display:flex;align-items:center;justify-content:center;z-index:40;
+  box-shadow:0 1px 5px rgba(229,72,77,.5),0 0 0 2px #fff}
+
+/* ── PC 外壳 ── */
+.pc{width:1000px;background:#fff;border-radius:12px;border:1px solid #d7dee7;overflow:hidden;
+  box-shadow:0 14px 36px rgba(15,23,42,.13)}
+.chrome{height:34px;background:#f1f3f6;border-bottom:1px solid #e2e8f0;display:flex;
+  align-items:center;padding:0 12px;gap:6px}
+.cdot{width:9px;height:9px;border-radius:50%;flex:none}
+.url{margin-left:10px;flex:1;height:21px;background:#fff;border-radius:5px;border:1px solid #e2e8f0;
+  font-size:11px;color:#94a3b8;display:flex;align-items:center;padding:0 9px}
+.app{display:flex;min-height:600px;align-items:stretch}
+
+/* 侧边栏 */
+.side{width:152px;flex:none;background:#1f2937;padding:0 0 16px}
+.logo{height:46px;display:flex;align-items:center;gap:8px;padding:0 16px;color:#fff;
+  font-size:13px;font-weight:700;border-bottom:1px solid #2d3748}
+.logo i{width:19px;height:19px;border-radius:5px;background:#7c3aed;display:flex;
+  align-items:center;justify-content:center;font-size:11px;font-style:normal}
+.mgrp{font-size:10.5px;color:#64748b;padding:12px 16px 5px;letter-spacing:.5px}
+.mi{padding:9px 16px;font-size:12.5px;color:#cbd5e1;display:flex;align-items:center;gap:8px}
+.mi.on{background:#7c3aed;color:#fff;font-weight:600}
+.mi .ic{width:13px;text-align:center;opacity:.85;font-size:12px}
+
+/* 主区 */
+.main{flex:1;min-width:0;background:#f7f8fa;display:flex;flex-direction:column}
+.topbar{height:44px;flex:none;background:#fff;border-bottom:1px solid #e5e7eb;display:flex;
+  align-items:center;justify-content:space-between;padding:0 18px}
+.crumb{font-size:12px;color:#8b95a5}
+.crumb em{font-style:normal;color:#374151}
+.user{display:flex;align-items:center;gap:7px;font-size:12px;color:#6b7280}
+.ava{width:22px;height:22px;border-radius:50%;background:#ddd6fe;color:#6d28d9;font-size:10.5px;
+  font-weight:700;display:flex;align-items:center;justify-content:center}
+.page{padding:15px 16px 20px;position:relative}
+
+.ph1{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;
+  position:relative}
+.ph1 h2{font-size:16px;font-weight:700;color:#111827}
+.ph1 .sub{font-size:11.5px;color:#9ca3af;margin-left:9px;font-weight:400}
+.btns{display:flex;gap:8px;align-items:center;position:relative}
+.btn{height:31px;padding:0 14px;border-radius:6px;font-size:12.5px;font-weight:500;cursor:pointer;
+  font-family:inherit;border:1px solid #dbe1e8;background:#fff;color:#4b5563;
+  display:inline-flex;align-items:center;gap:5px}
+.btn.pr{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
+.btn.dgr{color:#d64545;border-color:#f0a9a9;background:#fff}
+.btn.sm{height:26px;padding:0 10px;font-size:12px}
+
+/* 卡片 */
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:14px 16px;
+  margin-bottom:12px;position:relative}
+.card.pad0{padding:0}
+.ct{font-size:12.5px;font-weight:700;color:#374151;display:flex;align-items:center;
+  justify-content:space-between;gap:10px;position:relative}
+.card.pad0 .ct{padding:13px 16px;border-bottom:1px solid #f1f5f9}
+.card:not(.pad0) .ct{padding-bottom:11px;margin-bottom:13px;border-bottom:1px solid #f1f5f9}
+.ct .tip{font-size:11.5px;color:#9ca3af;font-weight:400}
+
+/* 表单 */
+.frm{display:flex;flex-wrap:wrap;gap:15px 26px}
+.frm.one{flex-direction:column;gap:15px}
+.f{display:flex;align-items:center;gap:10px;position:relative}
+.f > label{width:96px;text-align:right;font-size:12.5px;color:#6b7280;flex:none}
+.f > label i{color:#e5484d;font-style:normal;margin-right:2px}
+.inp{height:32px;border:1px solid #dbe1e8;border-radius:6px;padding:0 10px;font-size:12.5px;
+  color:#374151;display:flex;align-items:center;background:#fff;position:relative}
+.inp.ph{color:#b6bec9}
+.inp.ro{background:#f8fafc;color:#8b95a5}
+.w60{width:60px}.w120{width:120px}.w160{width:160px}.w220{width:220px}
+.w260{width:260px}.w300{width:300px}.w340{width:340px}
+.sel{padding-right:24px}
+.sel::after{content:"⌄";position:absolute;right:9px;top:50%;transform:translateY(-50%);
+  color:#9ca3af;font-size:13px;line-height:1}
+.unit{font-size:12px;color:#8b95a5;margin-left:-4px}
+.txtbox{border:1px solid #dbe1e8;border-radius:7px;padding:9px 11px;font-size:12.5px;
+  color:#b6bec9;min-height:62px;background:#fff}
+
+/* 下拉展开（仓库 / 商品） */
+.dd2{position:absolute;left:98px;top:35px;width:230px;background:#fff;border:1px solid #e5e7eb;
+  border-radius:8px;box-shadow:0 10px 26px rgba(15,23,42,.18);z-index:25;padding:5px 0}
+.dd2s{display:flex;align-items:center;gap:6px;margin:5px 8px 6px;padding:5px 9px;
+  border:1px solid #e5e7eb;border-radius:6px;font-size:12px;color:#b6bec9}
+.dd2i{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:12px;color:#374151}
+.dd2i .n{margin-left:auto;font-size:11px;color:#9ca3af}
+.dd2i.dis{color:#c4ccd6}
+.dd2i.dis .n{color:#c4ccd6}
+
+/* 开关 */
+.sw{width:36px;height:20px;border-radius:10px;background:#e5e7eb;position:relative;flex:none}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;
+  background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.2)}
+.sw.on{background:#7c3aed}
+.sw.on::after{left:18px}
+/* 分段单选 */
+.seg{display:inline-flex;border:1px solid #dbe1e8;border-radius:7px;overflow:hidden;
+  position:relative;background:#fff}
+.seg span{font-size:12.5px;color:#4b5563;padding:6px 15px;background:#fff;line-height:1.35}
+.seg span + span{border-left:1px solid #dbe1e8}
+.seg span.on{background:#7c3aed;color:#fff;font-weight:600}
+/* 复选 */
+.ck{width:14px;height:14px;border:1.5px solid #cbd5e1;border-radius:4px;background:#fff;
+  flex:none;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.ck.on{background:#7c3aed;border-color:#7c3aed}
+.ck.on::after{content:"✓"}
+.ck.half{background:#7c3aed;border-color:#7c3aed}
+.ck.half::after{content:"—"}
+
+/* 表格 */
+.tw{overflow-x:auto;position:relative}
+.tw::-webkit-scrollbar{height:7px}
+.tw::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+.tw::-webkit-scrollbar-track{background:#f1f5f9}
+table{width:100%;min-width:0;border-collapse:separate;border-spacing:0;table-layout:fixed;
+  font-size:11px}
+th{background:#f8fafc;color:#64748b;font-weight:600;font-size:11px;text-align:left;
+  padding:9px 8px;border-bottom:1px solid #e5e7eb;white-space:nowrap}
+td{padding:9px 8px;border-bottom:1px solid #f1f5f9;color:#374151;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+td.nm{color:#111827;font-weight:600}
+th.op,td.op{white-space:nowrap;position:relative;position:sticky;right:0;z-index:3;
+  box-shadow:-6px 0 8px -6px rgba(15,23,42,.16)}
+th.op{background:#f8fafc}
+td.op{background:#fff;padding-left:26px}
+/* 固定在左侧的列（勾选 + 活动名称） */
+th.fx,td.fx{position:sticky;background:#fff;z-index:3;
+  box-shadow:6px 0 8px -6px rgba(15,23,42,.16)}
+th.fx{background:#f8fafc}
+.left0{left:0}
+.left34{left:34px}
+.lk{color:#7c3aed;font-size:11px;margin-right:8px;display:inline-block;position:relative}
+.lk.gray{color:#c4ccd6}
+.lk.last{margin-right:0}
+.tg{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:5px;
+  white-space:nowrap;position:relative}
+.tg.w{background:#fef3c7;color:#b45309}
+.tg.s{background:#d1fae5;color:#047857}
+.tg.d{background:#dbeafe;color:#1d4ed8}
+.tg.c{background:#eef2f6;color:#64748b}
+.tg.r{background:#fee2e2;color:#b91c1c}
+.tg.p{background:#ede9fe;color:#6d28d9}
+.tg.o{background:#ffedd5;color:#c2410c}
+.thumb{width:26px;height:26px;border-radius:6px;background:#f6f4fc;display:inline-flex;
+  align-items:center;justify-content:center;font-size:15px}
+
+/* 翻页 */
+.pg{display:flex;align-items:center;gap:5px;padding:10px 14px;border-top:1px solid #f1f5f9;
+  font-size:11.5px;color:#9ca3af}
+.pg .grow{flex:1}
+.pg .pn{min-width:22px;height:22px;padding:0 6px;border-radius:5px;border:1px solid #e5e7eb;
+  background:#fff;color:#4b5563;display:flex;align-items:center;justify-content:center}
+.pg .pn.on{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
+.pg .pn.dis{color:#c4ccd6;background:#f8fafc}
+.pg .per{margin-left:6px;height:22px;border:1px solid #e5e7eb;border-radius:5px;background:#fff;
+  display:flex;align-items:center;padding:0 8px;color:#4b5563}
+
+/* 步骤条 */
+.steps{display:flex;align-items:center;background:#fff;border:1px solid #e5e7eb;border-radius:10px;
+  padding:14px 18px;margin-bottom:12px;position:relative}
+.stp{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#9ca3af;white-space:nowrap}
+.stp .n{width:22px;height:22px;border-radius:50%;background:#eef2f6;color:#94a3b8;font-size:11.5px;
+  font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+.stp.on{color:#7c3aed;font-weight:600}
+.stp.on .n{background:#7c3aed;color:#fff}
+.stp.dn{color:#374151}
+.stp.dn .n{background:#ddd6fe;color:#6d28d9}
+.sline{flex:1;height:1px;background:#e5e7eb;margin:0 14px}
+
+/* 数据概览 */
+.stats{display:flex;gap:12px;position:relative}
+.stat{flex:1;background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:13px 15px;
+  position:relative}
+.stat .lb{font-size:11.5px;color:#8b95a5}
+.stat .vl{font-size:22px;font-weight:700;color:#111827;margin-top:5px;letter-spacing:.5px}
+.stat .vl em{font-style:normal;font-size:12px;color:#9ca3af;font-weight:400;margin-left:3px}
+
+/* 抽奖形式二选一 */
+.optwrap{display:flex;gap:14px}
+.opt{width:172px;border:1.5px solid #e5e7eb;border-radius:10px;padding:12px 10px 11px;
+  text-align:center;background:#fff;position:relative}
+.opt.on{border-color:#7c3aed;background:#faf8ff;box-shadow:0 0 0 3px rgba(124,58,237,.09)}
+.opt .pv{height:74px;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.opt .nm{font-size:12.5px;font-weight:600;color:#4b5563}
+.opt.on .nm{color:#6d28d9}
+.disc{width:58px;height:58px;border-radius:50%;
+  background:conic-gradient(#fbbf24 0 60deg,#f97316 60deg 120deg,#fbbf24 120deg 180deg,
+  #f97316 180deg 240deg,#fbbf24 240deg 300deg,#f97316 300deg 360deg);
+  position:relative}
+.disc::after{content:"";position:absolute;inset:20px;border-radius:50%;background:#7c3aed}
+.mini9{display:grid;grid-template-columns:repeat(3,16px);grid-gap:3px}
+.mini9 i{width:16px;height:16px;border-radius:3px;background:#e9e4f7;display:block}
+.mini9 i.c{background:#7c3aed}
+.slot{font-size:42px;line-height:1}
+
+/* 九宫格设置 */
+.deco{display:flex;gap:22px;align-items:flex-start}
+.decol{flex:1;min-width:0}
+.gpt{font-size:11.5px;color:#8b95a5;margin-bottom:8px}
+.g9{width:246px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.gcell{height:78px;border-radius:9px;border:1px dashed #cbd5e1;background:#fff;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:10px;
+  color:#4b5563;text-align:center;padding:0 4px;line-height:1.2;position:relative}
+.gcell .ic{font-size:19px}
+.gcell .grip{position:absolute;right:3px;top:2px;font-size:9px;color:#cbd5e1;letter-spacing:-1px}
+.gcell.dr{background:linear-gradient(160deg,#fbbf24,#f97316);border:1px solid #fb923c;color:#fff;
+  font-size:12.5px;font-weight:700;letter-spacing:1px}
+.gcell.em{background:#f4f6f8;color:#b6bec9}
+
+/* C 端整页预览：274 宽 = 750×1200 的 H5 按比例缩到手机宽，格子与左边九宫格同尺寸（78 方） */
+.pvcol{width:274px;flex:none;position:relative}
+.pvphone{width:274px;border-radius:18px;padding:36px 14px 45px;position:relative;overflow:hidden;
+  background:linear-gradient(170deg,#8b5cf6,#6d28d9);box-shadow:0 8px 26px rgba(109,40,217,.28)}
+.pvhead{text-align:center;color:#fff;margin-bottom:16px}
+.pvhead .t{font-size:16px;font-weight:700;letter-spacing:.5px}
+.pvhead .m{font-size:10px;opacity:.9;margin-top:6px}
+.pvcount{background:rgba(255,255,255,.22);border-radius:10px;padding:10px 12px;display:flex;
+  align-items:center;justify-content:space-between;color:#fff;font-size:10.5px;margin-bottom:16px}
+.pvcount b{font-size:14px;letter-spacing:.5px}
+.pvhead{margin-bottom:9px}
+.pvbar{display:flex;align-items:center;justify-content:space-between;color:#fff;opacity:.9;
+  font-size:8.5px;padding:0 2px;margin-bottom:10px}
+.pvn{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pvn span{font-size:9px;color:#fff;background:rgba(255,255,255,.22);
+  border:1px solid rgba(255,255,255,.4);border-radius:20px;padding:3px 9px}
+.pvn .pvm{background:#fff;color:#6d28d9;border-color:#fff;font-weight:600}
+.pvb{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.32);border-radius:20px;
+  height:22px;display:flex;align-items:center;gap:5px;padding:0 9px;font-size:8.5px;color:#fff;
+  margin-bottom:10px;overflow:hidden;white-space:nowrap}
+.pvcount{margin-bottom:10px}
+.pvc.dr .t2{font-size:7.5px;font-weight:400;opacity:.95;margin-top:1px}
+.pva{margin-top:10px;text-align:center;font-size:8.5px;color:#fff;opacity:.92;line-height:1.6}
+.pvg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.pvc{border-radius:9px;background:#fff;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;font-size:9.5px;color:#6b7280;text-align:center;line-height:1.25;
+  padding:0 4px;height:78px;overflow:hidden}
+.pvc .ic{font-size:19px;margin-bottom:2px}
+.pvc.dr{background:linear-gradient(160deg,#fbbf24,#f97316);color:#fff;font-weight:700;font-size:13px}
+.pvc.em{background:rgba(255,255,255,.6);color:#a8a29e}
+
+/* 弹窗 */
+.dlgmask{position:absolute;inset:0;background:rgba(15,23,42,.42);z-index:20}
+.dlg{width:428px;background:#fff;border-radius:11px;box-shadow:0 20px 50px rgba(15,23,42,.32);
+  position:absolute;left:10px;top:12px}
+.dlgh{padding:13px 16px;border-bottom:1px solid #eef2f6;font-size:13px;font-weight:700;
+  color:#111827;display:flex;justify-content:space-between;align-items:center}
+.dlgh .x{color:#b6bec9;font-size:15px;font-weight:400}
+.dlgb{padding:14px 18px 6px 40px}
+.dlg .f > label{width:88px}
+.dlg .dlgf{padding:12px 18px}
+.dlg .frm.one{gap:15px}
+.dlgf{padding:12px 16px;border-top:1px solid #eef2f6;display:flex;justify-content:flex-end;
+  gap:9px;background:#fbfcfd;border-radius:0 0 11px 11px}
+
+/* 审核 / 详情 */
+.kv{display:flex;flex-wrap:wrap;gap:12px 0}
+.kvi{width:50%;display:flex;gap:10px;font-size:12.5px;line-height:1.6}
+.kvi.full{width:100%}
+.kvi .k{width:88px;flex:none;color:#8b95a5}
+.kvi .v{color:#374151}
+.tl{font-size:12.5px;color:#4b5563;line-height:1.9;position:relative}
+.tl .r{display:flex;gap:14px}
+.tl .r .t{width:118px;flex:none;color:#9ca3af}
+.tl .r:first-child{color:#111827;font-weight:600}
+.hint{font-size:12.5px;color:#9ca3af;padding:6px 0}
+</style>
+</head>
+<body>
+<div class="stage"><div class="board">
+<section class="srow"><div class="srt"><span class="no">①</span>活动列表页</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/list</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/list</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><div><h2>活动列表</h2></div>
+<div class="btns"><i class="mk" style="right:-6px;top:-13px">1</i><button class="btn">批量导出</button>
+<button class="btn pr">+ 新建活动</button></div></div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">2</i>
+<div class="frm">
+  <div class="f"><label>活动名称</label><div class="inp w220 ph">请输入活动名称</div></div>
+  <div class="f"><label>活动状态</label><div class="inp w160 sel ph">全部</div></div>
+  <div class="f"><label>所属店铺</label><div class="inp w160 sel ph">全部</div></div>
+  <div class="f"><label>审核人</label><div class="inp w140 sel ph">全部</div></div>
+  <div class="f"><label>活动时间</label><div class="inp w160 ph">开始时间</div>
+    <span class="unit">至</span><div class="inp w160 ph">结束时间</div></div>
+  <div class="f" style="width:100%"><label></label><div class="btns">
+    <button class="btn pr">查询</button><button class="btn">重置</button></div></div>
+</div>
+</div>
+
+<div class="card pad0">
+<div class="ct"><span>活动列表</span></div>
+<div class="tw"><table><colgroup><col style="width:34px"><col style="width:112px"><col style="width:96px"><col style="width:70px"><col style="width:60px"><col style="width:60px"><col style="width:50px"><col style="width:82px"><col style="width:50px"><col style="width:82px"><col style="width:120px"></colgroup><thead><tr><th class="fx left0"><span class="ck half"></span></th><th class="fx left34">活动名称</th><th>活动时间</th><th>活动状态</th><th>参与次数</th><th>中奖次数</th><th>创建人</th><th>创建时间</th><th>审核人</th><th>审核时间</th><th class="op">操作</th></tr></thead><tbody><tr><td class="fx left0"><span class="ck on"></span></td><td class="fx left34">双11抽奖<i class="mk" style="right:3px;top:50%;transform:translateY(-50%)">4</i></td><td>2026-11-01<br>~ 2026-11-11</td><td><span style="position:relative;display:inline-block"><i class="mk" style="right:-9px;top:50%;transform:translateY(-50%)">3</i><span class="tg s">进行中</span></span></td><td>1,286</td><td>742</td><td>张明</td><td>2026-10-28<br>15:20</td><td>赵强</td><td>2026-10-29<br>10:15</td><td class="op"><i class="mk" style="left:3px;top:50%;transform:translateY(-50%)">5</i><span class="lk">详情</span><span class="lk gray">编辑</span><span class="lk last">⋯<i class="mk" style="right:2px;top:-9px">6</i></span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">会员日抽奖</td><td>2026-10-18<br>~ 2026-10-25</td><td><span class="tg o">待修改</span></td><td>—</td><td>—</td><td>王芳</td><td>2026-10-14<br>09:30</td><td>赵强</td><td>2026-10-15<br>11:02</td><td class="op"><span class="lk">详情</span><span class="lk">编辑</span><span class="lk last">⋯</span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">新会员礼</td><td>2026-10-15<br>~ 2026-10-31</td><td><span class="tg d">待发布</span></td><td>—</td><td>—</td><td>李婷</td><td>2026-10-12<br>17:03</td><td>孙磊</td><td>2026-10-13<br>09:48</td><td class="op"><span class="lk">详情</span><span class="lk gray">编辑</span><span class="lk last">⋯</span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">双12抽奖</td><td>2026-12-01<br>~ 2026-12-12</td><td><span class="tg w">待审核</span></td><td>—</td><td>—</td><td>王芳</td><td>2026-10-11<br>10:26</td><td>—</td><td>—</td><td class="op"><span class="lk">详情</span><span class="lk">编辑</span><span class="lk last">⋯</span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">老客回馈</td><td>2026-10-20<br>~ 2026-10-31</td><td><span class="tg r">已中止</span></td><td>862</td><td>470</td><td>张明</td><td>2026-10-10<br>16:48</td><td>孙磊</td><td>2026-10-11<br>14:20</td><td class="op"><span class="lk">详情</span><span class="lk gray">编辑</span><span class="lk last">⋯</span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">双旦抽奖</td><td>2026-12-24<br>~ 2027-01-01</td><td><span class="tg c">已取消</span></td><td>—</td><td>—</td><td>李婷</td><td>2026-10-09<br>14:02</td><td>—</td><td>—</td><td class="op"><span class="lk">详情</span><span class="lk gray">编辑</span><span class="lk last">⋯</span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">周年庆抽奖</td><td>2026-11-18<br>~ 2026-11-30</td><td><span class="tg r">已驳回</span></td><td>—</td><td>—</td><td>张明</td><td>2026-10-08<br>11:20</td><td>赵强</td><td>2026-10-09<br>16:35</td><td class="op"><span class="lk">详情</span><span class="lk gray">编辑</span><span class="lk last">⋯</span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">国庆抽奖</td><td>2026-10-05<br>~ 2026-10-07</td><td><span class="tg s">进行中</span></td><td>3,914</td><td>2,108</td><td>李婷</td><td>2026-10-03<br>09:41</td><td>孙磊</td><td>2026-10-04<br>08:50</td><td class="op"><span class="lk">详情</span><span class="lk gray">编辑</span><span class="lk last">⋯</span></td></tr><tr><td class="fx left0"><span class="ck"></span></td><td class="fx left34">618抽奖</td><td>2026-06-01<br>~ 2026-06-20</td><td><span class="tg c">已结束</span></td><td>5,672</td><td>3,021</td><td>张明</td><td>2026-05-28<br>11:12</td><td>赵强</td><td>2026-05-29<br>10:05</td><td class="op"><span class="lk">详情</span><span class="lk gray">编辑</span><span class="lk last">⋯</span></td></tr></tbody></table></div>
+<div class="pg"><span>共 9 条</span><span class="grow"></span><span class="pn dis">‹</span><span class="pn on">1</span><span class="pn">›</span><span class="per">每页 20 条</span></div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>批量导出要先勾活动，导出全部列，不给选列</li><li>活动名称按名称模糊匹配，活动状态、所属店铺、审核人下拉单选，活动时间按区间筛</li><li>状态：待审核、待修改、待发布、进行中、已结束、已取消、已中止、已驳回。审核通过未到开始时间是待发布，到开始时间变进行中，到结束时间变已结束；审核人、审核时间＝最近一次审核的人和审核时间，还没审过的显示「—」</li><li>按创建时间倒序；活动未开始时参与次数、中奖次数显示「—」</li><li>编辑只在待审核、待修改时可点</li><li>「⋯」＝抽奖记录、兑换记录、复制活动、取消活动、中止活动；取消用于待审核/待修改/待发布，中止用于进行中；复制活动＝把奖品、概率、装修、玩法规则整套数据带进新建向导第 3 步，活动名称和活动时间要重填</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">②</span>新建页 · 第 1 步 基本信息</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/create</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/create</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="steps"><i class="mk" style="right:-9px;top:-11px">1</i><div class="stp on"><span class="n">1</span>基本信息</div><div class="sline"></div><div class="stp"><span class="n">2</span>奖项设置</div><div class="sline"></div><div class="stp"><span class="n">3</span>页面装修</div></div>
+<div class="ph1"><h2>新建活动<span class="sub">第 1 步 / 共 3 步</span></h2></div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">2</i>
+<div class="ct">基本信息</div>
+<div class="frm one">
+  <div class="f"><label><i>*</i>活动名称</label><div class="inp w300 ph">请输入活动名称，限 20 字</div></div>
+  <div class="f"><label><i>*</i>活动时间</label><div class="inp w160 ph">开始时间</div>
+    <span class="unit">至</span><div class="inp w160 ph">结束时间</div></div>
+  <div class="f"><label><i>*</i>选择店铺</label><div class="inp w220 sel ph">请选择店铺</div></div>
+  <div class="f" style="align-items:flex-start"><label>活动说明</label>
+    <div class="txtbox w340" style="color:#b6bec9">限 200 字</div></div>
+</div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">3</i>
+<div class="ct">抽奖次数设置</div>
+<div class="frm one">
+  <div class="f"><label>免费次数</label>
+    <div class="seg"><span>统一设置</span><span class="on">按会员等级设置</span></div></div>
+  <div class="f" style="align-items:flex-start"><label></label>
+    <div style="width:300px">
+    <div class="tw"><table><colgroup><col style="width:160px"><col style="width:140px"></colgroup><thead><tr><th>会员等级</th><th>免费次数</th></tr></thead><tbody><tr><td><span class="nm">普通会员</span></td><td><div class="inp w60">1</div></td></tr><tr><td><span class="nm">银卡会员</span></td><td><div class="inp w60">2</div></td></tr><tr><td><span class="nm">金卡会员</span></td><td><div class="inp w60">3</div></td></tr><tr><td><span class="nm">钻石会员</span></td><td><div class="inp w60">4</div></td></tr></tbody></table></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">4</i>
+<div class="ct">消费达标加次数</div>
+<div class="frm one">
+  <div class="f"><label></label>
+    <span style="font-size:12.5px;color:#6b7280">消费满</span><div class="inp w60">200</div>
+    <span style="font-size:12.5px;color:#6b7280">元，加</span><div class="inp w60">1</div>
+    <span style="font-size:12.5px;color:#6b7280">次</span></div>
+  <div class="f"><label></label>
+    <span style="font-size:12.5px;color:#6b7280">消费满</span><div class="inp w60">500</div>
+    <span style="font-size:12.5px;color:#6b7280">元，加</span><div class="inp w60">2</div>
+    <span style="font-size:12.5px;color:#6b7280">次</span></div>
+  <div class="f"><label></label><button class="btn sm">+ 添加一档</button></div>
+</div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">5</i>
+<div class="ct">每日抽奖上限</div>
+<div class="frm">
+  <div class="f"><label>是否设置</label><div class="sw on"></div>
+    <div class="inp w60" style="margin-left:10px">5</div><span class="unit">次 / 人 / 天</span></div>
+</div>
+</div>
+
+<div class="btns" style="justify-content:flex-end;padding-top:2px">
+<button class="btn">取消</button><button class="btn">保存</button>
+<button class="btn pr">下一步</button></div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>点走过的步骤能跳回去改，没填完不能往后跳</li><li>活动名称必填限 20 字；活动时间必填，开始时间不早于当天、结束晚于开始；店铺必填，只能选自己名下的；活动说明选填限 200 字</li><li>统一设置＝所有会员一个数；按会员等级设置＝按等级逐个填，没填的按 0</li><li>一档＝消费满 X 元加 Y 次，填了金额才能填次数，可加多档；按达标的最高一档加，不叠加</li><li>开关关掉＝当天不限次数，开着才填数字</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">③</span>新建页 · 第 2 步 奖项设置</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/create</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/create</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="steps"><div class="stp dn"><span class="n">✓</span>基本信息</div><div class="sline"></div><div class="stp on"><span class="n">2</span>奖项设置</div><div class="sline"></div><div class="stp"><span class="n">3</span>页面装修</div></div>
+<div class="ph1"><h2>新建活动<span class="sub">第 2 步 / 共 3 步</span></h2></div>
+
+<div class="card pad0"><i class="mk" style="left:-10px;top:-10px">1</i>
+<div class="ct"><span>奖品设置</span>
+  <span class="btns"><i class="mk" style="right:-10px;top:50%;transform:translateY(-50%)">2</i><button class="btn pr sm">+ 添加奖品</button></span></div>
+<div class="tw"><table><colgroup><col style="width:160px"><col style="width:80px"><col style="width:160px"><col style="width:90px"><col style="width:90px"><col style="width:120px"></colgroup><thead><tr><th>奖品名称</th><th>奖品类型</th><th>奖品内容</th><th>发放总量</th><th>剩余库存</th><th>操作</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td>10 元无门槛券</td><td>500</td><td>500</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td>满 100 减 20 元</td><td>300</td><td>300</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td>500ml 白色</td><td>50</td><td>50</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td>帆布 黑色</td><td>30</td><td>30</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td>—</td><td>不限</td><td>不限</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr></tbody></table></div>
+</div>
+
+<div class="card pad0"><i class="mk" style="left:-10px;top:-10px">3</i>
+<div class="ct"><span>抽奖概率设置</span><span class="tip">共 5 个奖项</span></div>
+<div style="padding:13px 16px 15px">
+  <div class="frm" style="margin-bottom:13px">
+    <div class="f"><label>概率模式</label>
+      <div class="seg"><span>平均概率</span><span class="on">自定义概率</span></div></div>
+  </div>
+  <div class="tw"><table><colgroup><col style="width:170px"><col style="width:100px"><col style="width:130px"><col style="width:110px"></colgroup><thead><tr><th>奖品</th><th>类型</th><th>转到概率</th><th>剩余库存</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">30 %</div></td><td>500</td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">15 %</div></td><td>300</td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">3 %</div></td><td>50</td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">2 %</div></td><td>30</td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td><div class="inp w60">50 %</div></td><td>不限</td></tr></tbody></table></div>
+  <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;
+    padding-top:11px;font-size:12.5px;color:#6b7280">合计
+    <span style="color:#047857;font-weight:700">100 %</span></div>
+</div>
+</div>
+
+<div class="btns" style="justify-content:flex-end;padding-top:2px">
+<button class="btn">上一步</button><button class="btn">保存</button>
+<button class="btn pr">下一步</button></div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>奖品设置表只是汇总，新增和改都在弹窗里做；剩余库存＝发放总量−已发放，系统算，不给改</li><li>添加奖品一次加一个，选完奖品类型才出现对应设置项；未中奖也在这里加，选「未中奖」填名称和提示语，不限量不占库存</li><li>平均概率下所有奖品等概率，转到概率那栏不出现；自定义概率逐个填，合计必须 100% 才能提交审核；「谢谢参与」也占一格概率</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">④</span>添加奖品弹窗 · 实物奖</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/create</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/create</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="steps"><div class="stp dn"><span class="n">✓</span>基本信息</div><div class="sline"></div><div class="stp on"><span class="n">2</span>奖项设置</div><div class="sline"></div><div class="stp"><span class="n">3</span>页面装修</div></div>
+<div class="ph1"><h2>新建活动<span class="sub">第 2 步 / 共 3 步</span></h2></div>
+
+<div class="card pad0">
+<div class="ct"><span>奖品设置</span>
+  <span class="btns"><button class="btn pr sm">+ 添加奖品</button></span></div>
+<div class="tw"><table><colgroup><col style="width:160px"><col style="width:80px"><col style="width:160px"><col style="width:90px"><col style="width:90px"><col style="width:120px"></colgroup><thead><tr><th>奖品名称</th><th>奖品类型</th><th>奖品内容</th><th>发放总量</th><th>剩余库存</th><th>操作</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td>10 元无门槛券</td><td>500</td><td>500</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td>满 100 减 20 元</td><td>300</td><td>300</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td>500ml 白色</td><td>50</td><td>50</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td>帆布 黑色</td><td>30</td><td>30</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td>—</td><td>不限</td><td>不限</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr></tbody></table></div>
+</div>
+
+<div class="card pad0">
+<div class="ct"><span>抽奖概率设置</span></div>
+<div style="padding:13px 16px 15px">
+  <div class="frm" style="margin-bottom:13px">
+    <div class="f"><label>概率模式</label>
+      <div class="seg"><span>平均概率</span><span class="on">自定义概率</span></div></div>
+  </div>
+  <div class="tw"><table><colgroup><col style="width:170px"><col style="width:100px"><col style="width:130px"><col style="width:110px"></colgroup><thead><tr><th>奖品</th><th>类型</th><th>转到概率</th><th>剩余库存</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">30 %</div></td><td>500</td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">15 %</div></td><td>300</td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">3 %</div></td><td>50</td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">2 %</div></td><td>30</td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td><div class="inp w60">50 %</div></td><td>不限</td></tr></tbody></table></div>
+</div>
+</div>
+
+<div class="dlgmask">
+<div class="dlg"><i class="mk" style="left:-10px;top:-10px">1</i>
+<div class="dlgh"><span>添加奖品 · 实物奖</span><span class="x">✕</span></div>
+<div class="dlgb" style="padding-bottom:152px">
+  <div class="frm one">
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">2</i><label>奖品类型</label>
+      <div class="seg"><span>券奖</span><span class="on">实物奖</span><span>未中奖</span></div></div>
+    <div class="f"><label><i>*</i>关联实物</label>
+      <div class="inp w190 sel" style="gap:6px">
+        <span style="color:#9ca3af">🔍</span>小米保温杯 500ml</div></div>
+    <div class="f"><label>奖品图片</label><div class="inp w130" style="gap:8px">
+      <span class="thumb">🎁</span>商品主图</div>
+      <span class="unit">带出，不给改</span></div>
+    <div class="f"><label>奖品内容</label><div class="inp w180">500ml 白色</div></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">4</i><label><i>*</i>发放总量</label>
+      <div class="inp w60">50</div>
+      <span class="unit">不能大于可用库存 120</span></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">5</i><label>有效期</label>
+      <div class="inp w150 ph">领取期限</div></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">3</i><label><i>*</i>发货仓库</label>
+      <div class="inp w190 sel" style="gap:6px">
+        <span style="color:#9ca3af">🔍</span>华东仓（库存 120）</div>
+      <div class="dd2">
+        <div class="dd2s">🔍 输入仓库名搜索</div>
+        <div class="dd2i">华北仓<span class="n">库存 86</span></div>
+        <div class="dd2i">华东仓<span class="n">库存 120</span></div>
+        <div class="dd2i">华南仓<span class="n">库存 34</span></div>
+        <div class="dd2i dis">西南仓<span class="n">库存 0</span></div>
+      </div></div>
+  </div>
+</div>
+<div class="dlgf"><button class="btn">取消</button><button class="btn pr">确定</button></div>
+</div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>新增和编辑奖品都用这个弹窗；关联实物的下拉第一行是搜索框，按商品名模糊搜，选定后带出奖品图片和名称，这两个不给改</li><li>券奖关联优惠券，实物奖关联商品</li><li>发货仓库必选，下拉第一行也是搜索框，按仓库名模糊搜；列表只出库里有这个商品的仓库和各自库存，库存 0 的置灰不可选</li><li>发放总量必填，不能大于所选仓库的可用库存</li><li>有效期＝奖品的领取期限，过期没领不再保留</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑤</span>添加奖品弹窗 · 券奖</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/create</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/create</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="steps"><div class="stp dn"><span class="n">✓</span>基本信息</div><div class="sline"></div><div class="stp on"><span class="n">2</span>奖项设置</div><div class="sline"></div><div class="stp"><span class="n">3</span>页面装修</div></div>
+<div class="ph1"><h2>新建活动<span class="sub">第 2 步 / 共 3 步</span></h2></div>
+
+<div class="card pad0">
+<div class="ct"><span>奖品设置</span>
+  <span class="btns"><button class="btn pr sm">+ 添加奖品</button></span></div>
+<div class="tw"><table><colgroup><col style="width:160px"><col style="width:80px"><col style="width:160px"><col style="width:90px"><col style="width:90px"><col style="width:120px"></colgroup><thead><tr><th>奖品名称</th><th>奖品类型</th><th>奖品内容</th><th>发放总量</th><th>剩余库存</th><th>操作</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td>10 元无门槛券</td><td>500</td><td>500</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td>满 100 减 20 元</td><td>300</td><td>300</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td>500ml 白色</td><td>50</td><td>50</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td>帆布 黑色</td><td>30</td><td>30</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td>—</td><td>不限</td><td>不限</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr></tbody></table></div>
+</div>
+
+<div class="card pad0">
+<div class="ct"><span>抽奖概率设置</span></div>
+<div style="padding:13px 16px 15px">
+  <div class="frm" style="margin-bottom:13px">
+    <div class="f"><label>概率模式</label>
+      <div class="seg"><span>平均概率</span><span class="on">自定义概率</span></div></div>
+  </div>
+  <div class="tw"><table><colgroup><col style="width:170px"><col style="width:100px"><col style="width:130px"><col style="width:110px"></colgroup><thead><tr><th>奖品</th><th>类型</th><th>转到概率</th><th>剩余库存</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">30 %</div></td><td>500</td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">15 %</div></td><td>300</td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">3 %</div></td><td>50</td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">2 %</div></td><td>30</td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td><div class="inp w60">50 %</div></td><td>不限</td></tr></tbody></table></div>
+</div>
+</div>
+
+<div class="dlgmask">
+<div class="dlg"><i class="mk" style="left:-10px;top:-10px">1</i>
+<div class="dlgh"><span>添加奖品 · 券奖</span><span class="x">✕</span></div>
+<div class="dlgb">
+  <div class="frm one">
+    <div class="f"><label>奖品类型</label>
+      <div class="seg"><span class="on">券奖</span><span>实物奖</span><span>未中奖</span></div></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">2</i><label><i>*</i>关联优惠券</label>
+      <div class="inp w190 sel">10 元无门槛券</div>
+      <span class="unit">从券系统已有的券里选</span></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">3</i><label>券面额</label>
+      <div class="inp w120 ro">10 元</div></div>
+    <div class="f"><label>使用门槛</label><div class="inp w150 ro">无门槛</div></div>
+    <div class="f"><label>有效期</label><div class="inp w150 ro">领取后 7 天</div></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">4</i><label><i>*</i>发放总量</label>
+      <div class="inp w60">500</div>
+      <span class="unit">券奖不占仓库库存</span></div>
+  </div>
+</div>
+<div class="dlgf"><button class="btn">取消</button><button class="btn pr">确定</button></div>
+</div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>券奖只能关联券系统里已有的券，券不在这里新建也不在这里改</li><li>关联优惠券必选，下拉列出券池里所有可用的券</li><li>券面额、使用门槛、有效期由券系统带出，这里只读</li><li>券奖不占仓库库存，发放总量＝这张券在券池里的限额张数，发完那一格自动换成「谢谢参与」</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑥</span>添加奖品弹窗 · 未中奖</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/create</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/create</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="steps"><div class="stp dn"><span class="n">✓</span>基本信息</div><div class="sline"></div><div class="stp on"><span class="n">2</span>奖项设置</div><div class="sline"></div><div class="stp"><span class="n">3</span>页面装修</div></div>
+<div class="ph1"><h2>新建活动<span class="sub">第 2 步 / 共 3 步</span></h2></div>
+
+<div class="card pad0">
+<div class="ct"><span>奖品设置</span>
+  <span class="btns"><button class="btn pr sm">+ 添加奖品</button></span></div>
+<div class="tw"><table><colgroup><col style="width:160px"><col style="width:80px"><col style="width:160px"><col style="width:90px"><col style="width:90px"><col style="width:120px"></colgroup><thead><tr><th>奖品名称</th><th>奖品类型</th><th>奖品内容</th><th>发放总量</th><th>剩余库存</th><th>操作</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td>10 元无门槛券</td><td>500</td><td>500</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td>满 100 减 20 元</td><td>300</td><td>300</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td>500ml 白色</td><td>50</td><td>50</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td>帆布 黑色</td><td>30</td><td>30</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td>—</td><td>不限</td><td>不限</td><td><span class="lk">编辑</span><span class="lk last">删除</span></td></tr></tbody></table></div>
+</div>
+
+<div class="card pad0">
+<div class="ct"><span>抽奖概率设置</span></div>
+<div style="padding:13px 16px 15px">
+  <div class="frm" style="margin-bottom:13px">
+    <div class="f"><label>概率模式</label>
+      <div class="seg"><span>平均概率</span><span class="on">自定义概率</span></div></div>
+  </div>
+  <div class="tw"><table><colgroup><col style="width:170px"><col style="width:100px"><col style="width:130px"><col style="width:110px"></colgroup><thead><tr><th>奖品</th><th>类型</th><th>转到概率</th><th>剩余库存</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">30 %</div></td><td>500</td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td><div class="inp w60">15 %</div></td><td>300</td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">3 %</div></td><td>50</td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td><div class="inp w60">2 %</div></td><td>30</td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td><div class="inp w60">50 %</div></td><td>不限</td></tr></tbody></table></div>
+</div>
+</div>
+
+<div class="dlgmask">
+<div class="dlg"><i class="mk" style="left:-10px;top:-10px">1</i>
+<div class="dlgh"><span>添加奖品 · 未中奖</span><span class="x">✕</span></div>
+<div class="dlgb">
+  <div class="frm one">
+    <div class="f"><label>奖品类型</label>
+      <div class="seg"><span>券奖</span><span>实物奖</span><span class="on">未中奖</span></div></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">2</i><label><i>*</i>名称</label>
+      <div class="inp w180">谢谢参与</div>
+      <span class="unit">九宫格那一格显示的字</span></div>
+    <div class="f"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">3</i><label>提示语</label>
+      <div class="inp w260">谢谢惠顾，下次再来</div></div>
+  </div>
+</div>
+<div class="dlgf"><button class="btn">取消</button><button class="btn pr">确定</button></div>
+</div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>未中奖不用关联奖品，也不用填发放总量和有效期，只填名称和提示语</li><li>名称必填默认「谢谢参与」，就是 C 端九宫格那一格显示的字</li><li>提示语选填默认「谢谢惠顾，下次再来」，C 端转到未中奖时弹窗显示这句话</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑦</span>新建页 · 第 3 步 页面装修</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/create</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/create</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="steps"><div class="stp dn"><span class="n">✓</span>基本信息</div><div class="sline"></div><div class="stp dn"><span class="n">✓</span>奖项设置</div><div class="sline"></div><div class="stp on"><span class="n">3</span>页面装修</div></div>
+<div class="ph1"><h2>新建活动<span class="sub">第 3 步 / 共 3 步</span></h2></div>
+
+<div class="card"><i class="mk" style="left:-10px;top:-10px">1</i>
+<div class="ct">抽奖形式</div>
+<div class="optwrap">
+  <div class="opt"><div class="pv"><div class="disc"></div></div><div class="nm">幸运大转盘</div></div>
+  <div class="opt on"><div class="pv"><div class="mini9">
+    <i class="c"></i><i></i><i class="c"></i><i></i><i class="c"></i>
+    <i></i><i class="c"></i><i></i><i class="c"></i>
+  </div></div><div class="nm">九宫格抽奖</div></div>
+</div>
+</div>
+
+<div class="deco">
+<div class="decol">
+
+<div class="card">
+<div class="ct">页面样式</div>
+<div style="position:relative"><i class="mk" style="left:-10px;top:-10px">2</i>
+<div class="gpt">九宫格 <span style="color:#b6bec9">（拖动换位）</span></div>
+<div class="g9"><div class="gcell"><span class="grip">⠿</span><span class="ic">🎟️</span>10元券</div><div class="gcell em"><span class="grip">⠿</span><span class="ic">🍀</span>谢谢参与</div><div class="gcell"><span class="grip">⠿</span><span class="ic">🎟️</span>满100减20</div><div class="gcell"><span class="grip">⠿</span><span class="ic">🎁</span>保温杯</div><div class="gcell dr">抽奖</div><div class="gcell"><span class="grip">⠿</span><span class="ic">🎟️</span>10元券</div><div class="gcell em"><span class="grip">⠿</span><span class="ic">🍀</span>谢谢参与</div><div class="gcell"><span class="grip">⠿</span><span class="ic">🎁</span>双肩包</div><div class="gcell"><span class="grip">⠿</span><span class="ic">🎟️</span>满100减20</div></div>
+</div>
+<div class="frm one" style="margin-top:16px">
+  <div class="f" style="position:relative"><i class="mk" style="left:-14px;top:50%;transform:translateY(-50%)">3</i><label>背景图片</label>
+    <div class="inp w220" style="gap:8px">已上传 750×1200</div></div>
+  <div class="f"><label>背景色</label><div class="inp w160" style="gap:8px">
+    <span style="width:14px;height:14px;border-radius:4px;background:#7c3aed;
+      display:inline-block"></span>#7C3AED</div></div>
+  <div class="f"><label>正文字号</label><div class="seg">
+    <span>小</span><span class="on">中</span><span>大</span></div></div>
+</div>
+</div>
+
+<div class="card"><i class="mk" style="left:-10px;top:-10px">4</i>
+<div class="ct">玩法规则</div>
+<div class="frm one">
+  <div class="f" style="align-items:flex-start"><label></label>
+    <div class="txtbox w480" style="color:#4b5563;height:auto">1. 已完成手机号绑定的会员均可参与，每个账号独立计算次数。<br>
+2. 进入活动页点「抽奖」参与，不同会员等级有对应的免费次数，消费达标还可额外增加次数。<br>
+3. 优惠券自动发放到账户，可在「我的奖品」查看；实物奖需填写收货地址后安排发货。<br>
+4. 实物奖请在奖品有效期内填写收货地址，逾期未填写视为放弃。</div></div>
+</div>
+</div>
+
+</div>
+
+<div class="pvcol"><i class="mk" style="right:-8px;top:-10px">5</i>
+  <div class="gpt">C 端整页预览</div>
+  <div class="pvphone">
+    <div class="pvbar"><span>9:41</span><span>⋯</span></div>
+    <div class="pvhead"><div class="t">双11抽奖</div>
+      <div class="m">活动时间 2026-11-01 — 2026-11-11</div></div>
+    <div class="pvn"><span>活动规则 ›</span><span class="pvm">我的奖品</span></div>
+    <div class="pvb"><span>🔔</span><span>恭喜 138****6621 抽中 10 元无门槛券</span></div>
+    <div class="pvcount"><span>剩余抽奖次数</span><b>3 次</b></div>
+    <div class="pvg"><div class="pvc"><span class="ic">🎟️</span>10元券</div><div class="pvc em"><span class="ic">🍀</span>谢谢参与</div><div class="pvc"><span class="ic">🎟️</span>满100减20</div><div class="pvc"><span class="ic">🎁</span>保温杯</div><div class="pvc dr"><span class="t1">抽奖</span><span class="t2">消耗 1 次</span></div><div class="pvc"><span class="ic">🎟️</span>10元券</div><div class="pvc em"><span class="ic">🍀</span>谢谢参与</div><div class="pvc"><span class="ic">🎁</span>双肩包</div><div class="pvc"><span class="ic">🎟️</span>满100减20</div></div>
+    <div class="pva">每个账号每天最多抽 5 次<br>奖品以实物为准，图片仅供参考</div>
+  </div>
+</div>
+</div>
+
+<div class="btns" style="justify-content:flex-end;padding-top:2px"><i class="mk" style="right:-6px;top:-13px">6</i>
+<button class="btn">取消</button><button class="btn">上一步</button>
+<button class="btn">保存</button><button class="btn pr">提交审核</button></div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>抽奖形式二选一，选了哪种下面的设置和 C 端就按哪种走</li><li>中间格固定是抽奖按钮；其他格子可拖动换位置，格子之间也能互换；奖品发完（剩余库存 0）那一格自动换成「谢谢参与」，C 端不再出现这个奖品</li><li>背景图片和背景色都填以图片为准；字号三档只影响 C 端正文字号</li><li>C 端规则弹层原样显示这个框的内容</li><li>预览是 C 端整页（750 × 1200 的 H5），左边改什么这里跟着变；预览里不给改文字，名称和时间跟第 1 步，剩余次数是用户的实时数据</li><li>提交审核后状态变「待审核」，活动不能再改，要改等审核退回</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑧</span>审核页 · 活动审核列表</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/audit</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi"><span class="ic">★</span>活动列表</div><div class="mi on"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/audit</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><div><h2>活动审核</h2></div>
+<div class="btns"><i class="mk" style="right:-6px;top:-13px">1</i><button class="btn">批量通过</button></div></div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">2</i>
+<div class="frm">
+  <div class="f"><label>活动名称</label><div class="inp w220 ph">请输入活动名称</div></div>
+  <div class="f"><label>审核状态</label><div class="inp w160 sel ph">全部</div></div>
+  <div class="f"><label>提交人</label><div class="inp w160 ph">请输入提交人</div></div>
+  <div class="f"><label>提交时间</label><div class="inp w160 ph">开始时间</div>
+    <span class="unit">至</span><div class="inp w160 ph">结束时间</div></div>
+  <div class="f" style="width:100%"><label></label><div class="btns">
+    <button class="btn pr">查询</button><button class="btn">重置</button></div></div>
+</div>
+</div>
+
+<div class="card pad0"><i class="mk" style="right:14px;top:-10px">4</i>
+<div class="ct"><span>活动审核列表</span></div>
+<div class="tw"><table><colgroup><col style="width:34px"><col style="width:140px"><col style="width:100px"><col style="width:64px"><col style="width:92px"><col style="width:84px"><col style="width:64px"><col style="width:92px"><col style="width:146px"></colgroup><thead><tr><th><span class="ck half"></span></th><th>活动名称</th><th>活动时间</th><th>提交人</th><th>提交时间</th><th>审核状态</th><th>审核人</th><th>审核时间</th><th>操作</th></tr></thead><tbody><tr><td><span class="ck on"></span></td><td>双12抽奖</td><td>2026-12-01<br>~ 2026-12-12</td><td>王芳</td><td>2026-10-11<br>10:26</td><td><span class="tg w">待审核</span></td><td>—</td><td>—</td><td><span class="lk last"><i class="mk" style="right:-26px;top:50%;transform:translateY(-50%)">3</i>审核</span></td></tr><tr><td><span class="ck"></span></td><td>中秋抽奖</td><td>2026-09-28<br>~ 2026-10-06</td><td>张明</td><td>2026-10-10<br>16:48</td><td><span class="tg w">待审核</span></td><td>—</td><td>—</td><td><span class="lk last">审核</span></td></tr><tr><td><span class="ck"></span></td><td>会员日抽奖</td><td>2026-10-18<br>~ 2026-10-25</td><td>王芳</td><td>2026-10-14<br>09:30</td><td><span class="tg o">返回修改</span></td><td>赵强</td><td>2026-10-15<br>11:02</td><td><span class="lk last">查看</span></td></tr><tr><td><span class="ck"></span></td><td>新会员礼</td><td>2026-10-15<br>~ 2026-10-31</td><td>李婷</td><td>2026-10-12<br>17:03</td><td><span class="tg s">已通过</span></td><td>孙磊</td><td>2026-10-13<br>09:48</td><td><span class="lk last">查看</span></td></tr><tr><td><span class="ck"></span></td><td>周年庆抽奖</td><td>2026-11-18<br>~ 2026-11-30</td><td>张明</td><td>2026-10-08<br>11:20</td><td><span class="tg r">已驳回</span></td><td>赵强</td><td>2026-10-09<br>16:35</td><td><span class="lk last">查看</span></td></tr></tbody></table></div>
+<div class="pg"><span>共 5 条</span><span class="grow"></span><span class="pn dis">‹</span><span class="pn on">1</span><span class="pn">›</span><span class="per">每页 20 条</span></div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>勾多行点「批量通过」一次全通过，只对「待审核」的有效；批量通过不走驳回和返回修改</li><li>活动名称按名称模糊匹配，审核状态下拉单选，提交人按姓名筛，提交时间按区间筛</li><li>待审核的点「审核」进审核页提交结果；已审核过的点「查看」进同一页，只能看不能改</li><li>待审核的和已审核的都在这个列表里，待审核的置顶（内部也按提交时间倒序），已审核的按提交时间倒序排在后面；审核完状态就地更新，行从待审核区排到已审核区</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑨</span>审核页 · 活动审核（待审核，可提交）</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/audit/detail</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi"><span class="ic">★</span>活动列表</div><div class="mi on"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/audit/detail</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><h2>活动审核<span class="sub">双12抽奖</span></h2>
+<div class="btns"><button class="btn">返回列表</button></div></div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">1</i>
+<div class="ct">活动信息</div>
+<div class="kv">
+  <div class="kvi"><span class="k">活动名称</span><span class="v">双12抽奖</span></div>
+  <div class="kvi"><span class="k">活动状态</span><span class="v"><span class="tg w">待审核</span></span></div>
+  <div class="kvi"><span class="k">活动时间</span>
+    <span class="v">2026-12-01 00:00 ~ 2026-12-12 23:59</span></div>
+  <div class="kvi"><span class="k">所属店铺</span><span class="v">苏州旗舰店</span></div>
+  <div class="kvi"><span class="k">提交人</span><span class="v">王芳</span></div>
+  <div class="kvi"><span class="k">提交时间</span><span class="v">2026-10-11 10:26</span></div>
+  <div class="kvi full"><span class="k">活动说明</span>
+    <span class="v">双12 期间进入抽奖活动页参与，每人每天最多抽 3 次。</span></div>
+</div>
+</div>
+
+<div class="card pad0"><i class="mk" style="left:-10px;top:-10px">2</i>
+<div class="ct"><span>奖品设置明细</span><span class="tip">共 5 个奖品</span></div>
+<div class="tw"><table><colgroup><col style="width:140px"><col style="width:76px"><col style="width:70px"><col style="width:150px"><col style="width:80px"><col style="width:80px"><col style="width:80px"></colgroup><thead><tr><th>奖品名称</th><th>奖品类型</th><th>奖品图片</th><th>奖品内容</th><th>发放总量</th><th>剩余库存</th><th>转到概率</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td><span class="thumb">🎟️</span></td><td>10 元无门槛券</td><td>500</td><td>500</td><td>30 %</td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td><span class="thumb">🎟️</span></td><td>满 100 减 20 元</td><td>300</td><td>300</td><td>15 %</td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td><span class="thumb">🎁</span></td><td>500ml 白色</td><td>50</td><td>50</td><td>3 %</td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td><span class="thumb">🎁</span></td><td>帆布 黑色</td><td>30</td><td>30</td><td>2 %</td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td><span class="thumb">🍀</span></td><td>—</td><td>不限</td><td>不限</td><td>50 %</td></tr></tbody></table></div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">3</i>
+<div class="ct">审核意见</div>
+<div class="frm one">
+  <div class="f"><label><i>*</i>审核结果</label>
+    <div class="seg"><span>通过</span><span>返回修改</span><span>驳回</span></div></div>
+  <div class="f" style="align-items:flex-start"><label><i>*</i>修改意见</label>
+    <div class="txtbox w340 ph" style="height:auto">选「返回修改」或「驳回」后必填</div></div>
+</div>
+</div>
+
+<div class="btns" style="justify-content:flex-end;padding-top:2px"><i class="mk" style="right:-6px;top:-13px">4</i>
+<button class="btn">返回列表</button><button class="btn pr">确定</button></div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>活动信息全部只读</li><li>奖品明细整表只读</li><li>审核结果必选，通过→待发布、到开始时间自动上线，返回修改→待修改、改完重新提交审核，驳回是终态、活动作废；选「返回修改」或「驳回」时意见必填，选「通过」时意见栏置灰</li><li>点「确定」按选中的结果执行；意见在活动列表创建人点编辑能看到</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑩</span>审核页 · 活动审核（已审核，只读）</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/audit/detail</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi"><span class="ic">★</span>活动列表</div><div class="mi on"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/audit/detail</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><h2>活动审核<span class="sub">会员日抽奖</span></h2>
+<div class="btns"><button class="btn">返回列表</button></div></div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">1</i>
+<div class="ct">活动信息</div>
+<div class="kv">
+  <div class="kvi"><span class="k">活动名称</span><span class="v">会员日抽奖</span></div>
+  <div class="kvi"><span class="k">活动状态</span><span class="v"><span class="tg o">待修改</span></span></div>
+  <div class="kvi"><span class="k">活动时间</span>
+    <span class="v">2026-10-18 00:00 ~ 2026-10-25 23:59</span></div>
+  <div class="kvi"><span class="k">所属店铺</span><span class="v">苏州旗舰店</span></div>
+  <div class="kvi"><span class="k">提交人</span><span class="v">王芳</span></div>
+  <div class="kvi"><span class="k">提交时间</span><span class="v">2026-10-14 09:30</span></div>
+  <div class="kvi full"><span class="k">活动说明</span>
+    <span class="v">会员日进入抽奖活动页参与，每人每天最多抽 3 次。</span></div>
+</div>
+</div>
+
+<div class="card pad0">
+<div class="ct"><span>奖品设置明细</span><span class="tip">共 5 个奖品</span></div>
+<div class="tw"><table><colgroup><col style="width:140px"><col style="width:76px"><col style="width:70px"><col style="width:150px"><col style="width:80px"><col style="width:80px"><col style="width:80px"></colgroup><thead><tr><th>奖品名称</th><th>奖品类型</th><th>奖品图片</th><th>奖品内容</th><th>发放总量</th><th>剩余库存</th><th>转到概率</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td><span class="tg p">券奖</span></td><td><span class="thumb">🎟️</span></td><td>10 元无门槛券</td><td>500</td><td>500</td><td>30 %</td></tr><tr><td>满 100 减 20 券</td><td><span class="tg p">券奖</span></td><td><span class="thumb">🎟️</span></td><td>满 100 减 20 元</td><td>300</td><td>300</td><td>15 %</td></tr><tr><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td><span class="thumb">🎁</span></td><td>500ml 白色</td><td>50</td><td>50</td><td>3 %</td></tr><tr><td>双肩包</td><td><span class="tg d">实物奖</span></td><td><span class="thumb">🎁</span></td><td>帆布 黑色</td><td>30</td><td>30</td><td>2 %</td></tr><tr><td>谢谢参与</td><td><span class="tg c">未中奖</span></td><td><span class="thumb">🍀</span></td><td>—</td><td>不限</td><td>不限</td><td>50 %</td></tr></tbody></table></div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">2</i>
+<div class="ct">审核结果</div>
+<div class="kv">
+  <div class="kvi"><span class="k">审核结果</span>
+    <span class="v"><span class="tg o">返回修改</span></span></div>
+  <div class="kvi"><span class="k">审核人</span><span class="v">赵强</span></div>
+  <div class="kvi"><span class="k">审核时间</span><span class="v">2026-10-15 11:02</span></div>
+  <div class="kvi full"><span class="k">审核意见</span>
+    <span class="v">奖品发放总量超出华东仓可用库存，请改小后重新提交。</span></div>
+</div>
+</div>
+
+<div class="btns" style="justify-content:flex-end;padding-top:2px"><i class="mk" style="right:-6px;top:-13px">3</i>
+<button class="btn">返回列表</button></div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>已审核过的活动从列表点「查看」进来，整页只读，改不了</li><li>显示上一次的审核结果、审核人、审核时间和审核意见，不给改</li><li>只留「返回列表」，没有确定按钮；活动已经按上次的结果流转到对应状态了</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑪</span>详情页 · 活动详情</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/detail</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/detail</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><h2>活动详情<span class="sub">国庆抽奖</span></h2></div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">1</i>
+<div class="ct">基本信息</div>
+<div class="kv">
+  <div class="kvi"><span class="k">活动名称</span><span class="v">国庆抽奖</span></div>
+  <div class="kvi"><span class="k">活动状态</span><span class="v"><span class="tg s">进行中</span></span></div>
+  <div class="kvi"><span class="k">活动时间</span>
+    <span class="v">2026-10-05 00:00 ~ 2026-10-07 23:59</span></div>
+  <div class="kvi"><span class="k">所属店铺</span><span class="v">苏州旗舰店</span></div>
+  <div class="kvi"><span class="k">创建人</span><span class="v">李婷</span></div>
+  <div class="kvi"><span class="k">创建时间</span><span class="v">2026-10-03 09:41</span></div>
+  <div class="kvi full"><span class="k">活动说明</span>
+    <span class="v">国庆期间进活动页抽奖，每人每天最多抽 5 次。</span></div>
+</div>
+</div>
+
+<div class="stats"><i class="mk" style="left:-10px;top:-10px">2</i>
+  <div class="stat"><div class="lb">总抽奖人数</div><div class="vl">3,914</div></div>
+  <div class="stat"><div class="lb">总中奖人数</div><div class="vl">2,108</div></div>
+</div>
+
+<div class="card pad0" style="margin-top:12px"><i class="mk" style="left:-10px;top:-10px">3</i>
+<div class="ct"><span>奖品数据</span></div>
+<div class="tw"><table><colgroup><col style="width:170px"><col style="width:110px"><col style="width:110px"><col style="width:110px"></colgroup><thead><tr><th>奖品名称</th><th>发放总量</th><th>已发放</th><th>剩余库存</th></tr></thead><tbody><tr><td>10 元无门槛券</td><td>500</td><td>412</td><td>88</td></tr><tr><td>满 100 减 20 券</td><td>300</td><td>236</td><td>64</td></tr><tr><td>小米保温杯 500ml</td><td>50</td><td>38</td><td>12</td></tr><tr><td>双肩包</td><td>30</td><td>30</td><td><span class="tg r">已发完</span></td></tr></tbody></table></div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>整页只读，要改去活动列表操作列点编辑</li><li>总抽奖人数、总中奖人数实时统计</li><li>剩余库存系统算；库存发完的奖品在列表里标出来，C 端九宫格那一格此时已经自动换成「谢谢参与」</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑫</span>抽奖记录页</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/record/draw</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/record/draw</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><h2>抽奖记录<span class="sub">国庆抽奖</span></h2>
+<div class="btns"><i class="mk" style="right:-6px;top:-13px">3</i><button class="btn pr">导出</button></div></div>
+
+<div class="stats"><i class="mk" style="left:-10px;top:-10px">1</i>
+  <div class="stat"><div class="lb">总抽奖人数</div><div class="vl">3,914</div></div>
+  <div class="stat"><div class="lb">总中奖人数</div><div class="vl">2,108</div></div>
+  <div class="stat"><div class="lb">奖品发放份数</div><div class="vl">2,246<em>份</em></div></div>
+</div>
+
+<div class="card" style="margin-top:12px"><i class="mk" style="left:-10px;top:-10px">2</i>
+<div class="frm">
+  <div class="f"><label>会员等级</label><div class="inp w160 sel ph">全部</div></div>
+  <div class="f"><label>中奖结果</label><div class="inp w160 sel ph">全部</div></div>
+  <div class="f"><label>参与时间</label><div class="inp w160 ph">开始时间</div>
+    <span class="unit">至</span><div class="inp w160 ph">结束时间</div></div>
+  <div class="f"><label>参与用户</label><div class="inp w220 ph">手机号 / 昵称</div></div>
+  <div class="f" style="width:100%"><label></label><div class="btns">
+    <button class="btn pr">查询</button><button class="btn">重置</button></div></div>
+</div>
+</div>
+
+<div class="card pad0"><i class="mk" style="left:-10px;top:-10px">4</i>
+<div class="ct"><span>参与记录</span></div>
+<div class="tw"><table><colgroup><col style="width:34px"><col style="width:100px"><col style="width:110px"><col style="width:84px"><col style="width:122px"><col style="width:78px"><col style="width:160px"><col style="width:128px"></colgroup><thead><tr><th><span class="ck half"></span></th><th>昵称</th><th>手机号</th><th>会员等级</th><th>抽奖时间</th><th>中奖结果</th><th>奖品名称</th><th>奖品状态</th></tr></thead><tbody><tr><td><span class="ck on"></span></td><td>小明同学</td><td>138****6621</td><td>金卡会员</td><td>2026-10-06 14:22:07</td><td><span class="tg s">中奖</span></td><td>10 元无门槛券</td><td><span class="tg s">已到账</span></td></tr><tr><td><span class="ck"></span></td><td>Amy</td><td>159****3340</td><td>银卡会员</td><td>2026-10-06 14:20:55</td><td><span class="tg s">中奖</span></td><td>小米保温杯 500ml</td><td><span class="tg w">待填写地址</span></td></tr><tr><td><span class="ck"></span></td><td>老张</td><td>137****9012</td><td>普通会员</td><td>2026-10-06 14:18:31</td><td><span class="tg c">谢谢惠顾</span></td><td>—</td><td>—</td></tr><tr><td><span class="ck"></span></td><td>Lily</td><td>186****5588</td><td>钻石会员</td><td>2026-10-06 14:11:09</td><td><span class="tg s">中奖</span></td><td>双肩包</td><td><span class="tg d">已发货</span></td></tr><tr><td><span class="ck"></span></td><td>阿强</td><td>135****7733</td><td>普通会员</td><td>2026-10-06 14:02:44</td><td><span class="tg c">谢谢惠顾</span></td><td>—</td><td>—</td></tr></tbody></table></div>
+<div class="pg"><span>共 3,914 条</span><span class="grow"></span><span class="pn dis">‹</span><span class="pn on">1</span><span class="pn">2</span><span class="pn">3</span><span class="pn">…</span><span class="pn">196</span><span class="pn">›</span><span class="per">每页 20 条</span></div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>三个统计数跟着筛选条件变</li><li>参与用户按手机号或昵称模糊匹配</li><li>按当前筛选条件导出全部列，不给选列</li><li>按抽奖时间倒序。奖品状态：券奖＝已到账 / 已过期，实物奖＝待填写地址 / 待发货 / 已发货 / 已签收；没中奖的奖品名称和状态显示「—」</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑬</span>兑换记录页</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/record/exchange</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/record/exchange</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><h2>兑换记录<span class="sub">国庆抽奖</span></h2>
+<div class="btns"><i class="mk" style="right:-6px;top:-13px">4</i><button class="btn pr">导出</button></div></div>
+
+<div class="card"><i class="mk" style="left:-10px;top:-10px">1</i>
+<div class="ct">奖品发放份数</div>
+<div class="stats" style="gap:12px">
+  <div class="stat" style="border:none;padding:0">
+    <div class="lb">已发出</div><div class="vl">486<em>份</em></div></div>
+  <div class="stat" style="border:none;padding:0">
+    <div class="lb">待发货</div><div class="vl">93<em>份</em></div></div>
+  <div class="stat" style="border:none;padding:0">
+    <div class="lb">已签收</div><div class="vl">38<em>份</em></div></div>
+</div>
+</div>
+
+<div class="card"><i class="mk" style="left:-10px;top:-10px">2</i>
+<div class="frm">
+  <div class="f"><label>中奖人</label><div class="inp w220 ph">手机号 / 昵称</div></div>
+  <div class="f"><label>奖品类型</label><div class="inp w160 sel ph">全部</div></div>
+  <div class="f"><label>奖品状态</label><div class="inp w160 sel ph">全部</div></div>
+  <div class="f"><label>中奖时间</label><div class="inp w160 ph">开始时间</div>
+    <span class="unit">至</span><div class="inp w160 ph">结束时间</div></div>
+  <div class="f" style="width:100%"><label></label><div class="btns">
+    <button class="btn pr">查询</button><button class="btn">重置</button></div></div>
+</div>
+</div>
+
+<div class="card pad0">
+<div class="ct"><span>兑换记录</span></div>
+<div class="tw"><table><colgroup><col style="width:34px"><col style="width:88px"><col style="width:126px"><col style="width:68px"><col style="width:138px"><col style="width:96px"><col style="width:70px"><col style="width:96px"><col style="width:100px"></colgroup><thead><tr><th><span class="ck half"></span></th><th>中奖人</th><th>奖品名称</th><th>奖品类型</th><th>中奖时间</th><th>奖品状态</th><th>发货状态</th><th>物流单号</th><th>操作</th></tr></thead><tbody><tr><td><span class="ck on"></span></td><td>小明同学<br><span style="color:#9ca3af;font-size:10px">138****6621</span></td><td>10 元无门槛券</td><td><span class="tg p">券奖</span><i class="mk" style="right:-22px;top:50%;transform:translateY(-50%)">5</i></td><td>2026-10-06 14:22:07</td><td><span class="tg s">已到账</span></td><td>—</td><td>—</td><td><span class="lk last gray">—</span></td></tr><tr><td><span class="ck"></span></td><td>Amy<br><span style="color:#9ca3af;font-size:10px">159****3340</span></td><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td>2026-10-06 14:20:55</td><td><span class="tg w">待填写地址</span></td><td>—</td><td>—</td><td><span class="lk last"><i class="mk" style="right:-22px;top:50%;transform:translateY(-50%)">3</i>查看物流</span></td></tr><tr><td><span class="ck"></span></td><td>Lily<br><span style="color:#9ca3af;font-size:10px">186****5588</span></td><td>双肩包</td><td><span class="tg d">实物奖</span></td><td>2026-10-05 19:03:12</td><td><span class="tg d">已发货</span></td><td>已发货</td><td>SF1234567890</td><td><span class="lk last">查看物流</span></td></tr><tr><td><span class="ck"></span></td><td>王芳<br><span style="color:#9ca3af;font-size:10px">133****2266</span></td><td>小米保温杯 500ml</td><td><span class="tg d">实物奖</span></td><td>2026-10-05 16:47:30</td><td><span class="tg s">已签收</span></td><td>已签收</td><td>SF1234567891</td><td><span class="lk last">查看物流</span></td></tr><tr><td><span class="ck"></span></td><td>陈涛<br><span style="color:#9ca3af;font-size:10px">180****4477</span></td><td>双肩包</td><td><span class="tg d">实物奖</span></td><td>2026-10-05 11:22:08</td><td><span class="tg c">待发货</span></td><td>待发货</td><td>—</td><td><span class="lk last">查看物流</span></td></tr></tbody></table></div>
+<div class="pg"><span>共 617 条</span><span class="grow"></span><span class="pn dis">‹</span><span class="pn on">1</span><span class="pn">2</span><span class="pn">3</span><span class="pn">…</span><span class="pn">31</span><span class="pn">›</span><span class="per">每页 20 条</span></div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>三个数跟着筛选条件变</li><li>中奖人按手机号或昵称模糊匹配，中奖时间按区间筛</li><li>实物奖点「查看物流」进兑换详情；券奖不发货，操作列显示「—」</li><li>按当前筛选条件导出全部列，不给选列</li><li>奖品状态和发货状态是两条数据；券奖的发货状态、物流单号显示「—」</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑭</span>兑换详情页 · 待填写地址 / 待发货</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/record/exchange/detail</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/record/exchange/detail</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><h2>兑换详情<span class="sub">小米保温杯 500ml</span></h2>
+<div class="btns"><button class="btn">返回列表</button></div></div>
+
+<div class="card">
+<div class="ct">兑换单信息</div>
+<div class="kv">
+  <div class="kvi"><span class="k">奖品名称</span><span class="v">小米保温杯 500ml</span></div>
+  <div class="kvi"><span class="k">奖品类型</span><span class="v">实物奖</span></div>
+  <div class="kvi"><span class="k">中奖人</span><span class="v">Amy　159****3340</span></div>
+  <div class="kvi"><span class="k">中奖时间</span><span class="v">2026-10-06 14:20:55</span></div>
+  <div class="kvi"><span class="k">奖品状态</span>
+    <span class="v"><span class="tg w">待填写地址</span><i class="mk" style="right:-22px;top:50%;transform:translateY(-50%)">2</i></span></div>
+  <div class="kvi"><span class="k">发货状态</span>
+    <span class="v">—<i class="mk" style="right:-16px;top:50%;transform:translateY(-50%)">3</i></span></div>
+</div>
+</div>
+
+<div class="card">
+<div class="ct">收货信息</div>
+<div class="hint">用户还没填写收货地址</div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">1</i>
+<div class="ct">物流进度</div>
+<div class="hint">还没发货，没有物流信息</div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>发货前不出现物流公司和轨迹</li><li>奖品状态流转：待填写地址 → 待发货 → 已发货 → 已签收</li><li>奖品状态看用户领没领，发货状态看仓库发没发</li></ol></div></div></section><section class="srow"><div class="srt"><span class="no">⑮</span>兑换详情页 · 已发货（含物流轨迹）</div><div class="srbody"><div class="pcwrap"><div class="pc">
+<div class="chrome">
+  <span class="cdot" style="background:#ff5f57"></span>
+  <span class="cdot" style="background:#febc2e"></span>
+  <span class="cdot" style="background:#28c840"></span>
+  <span class="url">admin.weilun.com.cn/marketing/activity/record/exchange/detail</span>
+</div>
+<div class="app">
+  <div class="side">
+    <div class="logo"><i>营</i>营销活动后台</div>
+    <div class="mgrp">营销活动</div><div class="mi on"><span class="ic">★</span>活动列表</div><div class="mi"><span class="ic">☑</span>活动审核</div>
+  </div>
+  <div class="main">
+    <div class="topbar">
+      <div class="crumb">营销活动　/　<em>marketing/activity/record/exchange/detail</em></div>
+      <div class="user"><span class="ava">张</span><span>张明</span></div>
+    </div>
+    <div class="page">
+<div class="ph1"><h2>兑换详情<span class="sub">双肩包</span></h2>
+<div class="btns"><button class="btn">返回列表</button></div></div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">1</i>
+<div class="ct">兑换单信息</div>
+<div class="kv">
+  <div class="kvi"><span class="k">奖品名称</span><span class="v">双肩包</span></div>
+  <div class="kvi"><span class="k">奖品类型</span><span class="v">实物奖</span></div>
+  <div class="kvi"><span class="k">中奖人</span><span class="v">Lily　186****5588</span></div>
+  <div class="kvi"><span class="k">中奖时间</span><span class="v">2026-10-05 19:03:12</span></div>
+  <div class="kvi"><span class="k">奖品状态</span>
+    <span class="v"><span class="tg d">已发货</span></span></div>
+  <div class="kvi"><span class="k">发货状态</span><span class="v">已发货</span></div>
+</div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">2</i>
+<div class="ct">收货信息</div>
+<div class="kv">
+  <div class="kvi"><span class="k">收货人</span><span class="v">Lily</span></div>
+  <div class="kvi"><span class="k">联系电话</span><span class="v">186****5588</span></div>
+  <div class="kvi full"><span class="k">所在地区</span>
+    <span class="v">江苏省 苏州市 姑苏区 平江路 88 号 3 幢 502</span></div>
+</div>
+</div>
+
+<div class="card"><i class="mk" style="right:14px;top:-10px">3</i>
+<div class="ct">物流进度</div>
+<div class="kv" style="margin-bottom:14px">
+  <div class="kvi"><span class="k">发货状态</span><span class="v">已发货</span></div>
+  <div class="kvi"><span class="k">物流公司</span><span class="v">顺丰速运</span></div>
+  <div class="kvi full"><span class="k">物流单号</span><span class="v">SF1234567890</span></div>
+</div>
+<div class="tl">
+  <div class="r"><span class="t">2026-10-06 09:12</span>
+    <span>运输中 · 苏州转运中心已发出，下一站上海分拨中心</span></div>
+  <div class="r"><span class="t">2026-10-05 20:41</span>
+    <span>已揽收 · 顺丰速运已揽收</span></div>
+  <div class="r"><span class="t">2026-10-05 18:30</span>
+    <span>已发货 · 商家已发货</span></div>
+</div>
+</div>
+    </div>
+  </div>
+</div>
+</div></div><div class="note"><div class="nh">需求备注</div><ol><li>兑换单信息只读</li><li>收货信息后台只读；发货前用户还能改地址，发货后锁住</li><li>物流轨迹倒序，最新一条在最上面；没发货时这一块只显示「还没发货，没有物流信息」</li></ol></div></div></section>
+</div></div>
+<style id="it-style">
+/* ══════════ 可交互演示层：只在原有原型上叠加 ══════════ */
+body.it .stage{padding-top:80px}
+body.it .srow{scroll-margin-top:72px}
+.itbar{position:fixed;left:0;right:0;top:0;z-index:9990;height:56px;display:flex;align-items:center;
+  gap:9px;padding:0 16px;background:#0f172a;color:#e5e7eb;font-size:12.5px;
+  box-shadow:0 2px 12px rgba(15,23,42,.28)}
+.itbar .t{font-size:13px;font-weight:700;color:#fff;letter-spacing:.3px;white-space:nowrap}
+.itbar .t em{font-style:normal;font-weight:400;color:#8b95a5;margin-left:9px;font-size:11.5px}
+.itbar .sp{flex:1}
+.itbar button{height:30px;padding:0 12px;border-radius:7px;border:1px solid #334155;background:#1e293b;
+  color:#e2e8f0;font-size:12.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.itbar button:hover{background:#2b3a4f}
+.itbar button:disabled{opacity:.32;cursor:default}
+.itbar button:hover:disabled{background:#1e293b}
+.itbar button.on{background:#7c3aed;border-color:#7c3aed;color:#fff;font-weight:600}
+.itbar select{height:30px;padding:0 8px;border-radius:7px;border:1px solid #334155;background:#1e293b;
+  color:#e2e8f0;font-size:12.5px;font-family:inherit;max-width:330px;text-overflow:ellipsis}
+.itbar .cnt{color:#94a3b8;font-size:12px;min-width:52px;text-align:center;
+  font-variant-numeric:tabular-nums}
+.ittoast{position:fixed;left:50%;bottom:48px;transform:translate(-50%,14px);z-index:10010;
+  background:#111827;color:#fff;font-size:12.5px;line-height:1.5;padding:9px 18px;border-radius:9px;
+  box-shadow:0 10px 28px rgba(0,0,0,.32);opacity:0;transition:opacity .2s,transform .2s;
+  pointer-events:none;max-width:72vw}
+.ittoast.on{opacity:1;transform:translate(-50%,0)}
+.itmenu{position:fixed;z-index:10005;background:#fff;border:1px solid #e5e7eb;border-radius:9px;
+  box-shadow:0 14px 34px rgba(15,23,42,.24);padding:5px 0;min-width:118px;max-height:260px;
+  overflow:auto;font-size:12.5px;
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif}
+.itmenu div{padding:7px 14px;color:#374151;cursor:pointer;white-space:nowrap}
+.itmenu div:hover{background:#f5f3ff;color:#6d28d9}
+.itmenu div.cur{color:#7c3aed;font-weight:600}
+body.it-demo .srow{display:none}
+body.it-demo .srow.active{display:block}
+body.it-nonote .note{display:none}
+.ip{cursor:pointer}
+body.it .mi,body.it .lk,body.it .stp,body.it .opt,body.it .gcell{cursor:pointer}
+body.it .seg span{cursor:pointer}
+body.it .sw,body.it .ck,body.it .pn,body.it .dd2i,body.it .dd2s{cursor:pointer}
+.gcell.pick{outline:2px solid #7c3aed;outline-offset:2px;border-style:solid;background:#faf8ff}
+.gcell[draggable="true"]{cursor:grab}
+.gcell.dragging{opacity:.4}
+.gcell.over{outline:2px dashed #7c3aed;outline-offset:-3px;background:#f5f3ff}
+.txtbox.off{background:#f8fafc;color:#c4ccd6}
+/* 可输入的框 */
+body.it .inp[contenteditable="true"],body.it .txtbox[contenteditable="true"]{
+  outline:none;cursor:text;overflow:hidden}
+body.it .inp[contenteditable="true"]{white-space:nowrap}
+body.it .inp[contenteditable="true"]:focus,body.it .txtbox[contenteditable="true"]:focus{
+  border-color:#a78bfa;box-shadow:0 0 0 2px rgba(124,58,237,.16)}
+/* 转盘 */
+body.it .decol .gpt{padding-left:12px}
+.w8wrap{position:relative}
+.w8{position:relative;width:246px;height:246px;margin:0 auto}
+.w8disc{position:absolute;inset:0;border-radius:50%;border:3px solid #fff;
+  box-shadow:0 4px 14px rgba(15,23,42,.18);
+  background:conic-gradient(#fbbf24 0 45deg,#f97316 45deg 90deg,#fbbf24 90deg 135deg,
+    #f97316 135deg 180deg,#fbbf24 180deg 225deg,#f97316 225deg 270deg,
+    #fbbf24 270deg 315deg,#f97316 315deg 360deg)}
+.w8hub{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  width:70px;height:70px;border-radius:50%;background:linear-gradient(160deg,#fbbf24,#f97316);
+  color:#fff;font-size:13px;font-weight:700;letter-spacing:1px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 0 5px #fff,0 3px 10px rgba(0,0,0,.2)}
+.w8lbl{position:absolute;transform:translate(-50%,-50%);width:62px;text-align:center;
+  font-size:9px;line-height:1.2;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.4);
+  pointer-events:none}
+.w8lbl .ic{display:block;font-size:14px;margin-bottom:1px;text-shadow:none}
+/* 正文字号三档：只影响 C 端预览正文 */
+body.it .pvphone{--pvfs:1}
+body.it .pvphone .pvc{font-size:calc(9.5px * var(--pvfs))}
+body.it .pvphone .pvc .ic{font-size:calc(19px * var(--pvfs))}
+body.it .pvphone .pvc.dr .t2{font-size:calc(7.5px * var(--pvfs))}
+body.it .pvphone .pva{font-size:calc(8.5px * var(--pvfs))}
+body.it .pvphone .pvcount{font-size:calc(10.5px * var(--pvfs))}
+body.it .pvphone .pvcount b{font-size:calc(14px * var(--pvfs))}
+body.it .pvphone .pvn span{font-size:calc(9px * var(--pvfs))}
+body.it .pvphone .pvb{font-size:calc(8.5px * var(--pvfs))}
+body.it .pvphone .w8lbl{font-size:calc(9px * var(--pvfs))}
+body.it .pvphone .w8lbl .ic{font-size:calc(14px * var(--pvfs))}
+/* 转盘扇区可拖动换位 */
+body.it .w8lbl[draggable="true"]{pointer-events:auto;cursor:grab}
+body.it .w8lbl.dragging{opacity:.35}
+body.it .w8lbl.over{box-shadow:0 0 0 2px #fff,0 0 0 4px #f97316;border-radius:8px}
+</style>
+<div class="itbar" id="itbar">
+  <span class="t">九宫格抽奖 · B 端原型<em>可交互演示　← → 换屏</em></span>
+  <button id="itPrev">‹ 上一屏</button>
+  <button id="itNext">下一屏 ›</button>
+  <select id="itSel"></select>
+  <span class="cnt" id="itCnt"></span>
+  <span class="sp"></span>
+  <button id="itNote">隐藏备注</button>
+  <button id="itMode">平铺全部</button>
+</div>
+<div class="ittoast" id="ittoast"></div>
+<script>
+(function(){
+  'use strict';
+  document.body.classList.add('it', 'it-demo');
+
+  var board = document.querySelector('.board');
+  if(!board) return;
+  var rows = [].slice.call(board.children).filter(function(el){
+    return String(el.className || '').indexOf('srow') >= 0;
+  });
+  var TOTAL = rows.length;
+  if(!TOTAL) return;
+
+  /* ────────── 小工具 ────────── */
+  function norm(s){ return String(s == null ? '' : s).replace(/\s+/g, ''); }
+  function clean(s){ return String(s == null ? '' : s).replace(/​/g, '').replace(/\s+/g, ''); }
+  /* 取文字时把红色序号 .mk 剔掉，免得「3进行中」这种脏值影响比对 */
+  function plain(el){
+    if(!el) return '';
+    var c = el.cloneNode(true);
+    [].slice.call(c.querySelectorAll('.mk')).forEach(function(m){ m.parentNode.removeChild(m); });
+    return clean(c.textContent);
+  }
+  function txt(el){ return el ? norm(el.textContent) : ''; }
+  function each(scope, sel, fn){
+    [].slice.call(scope.querySelectorAll(sel)).forEach(fn);
+  }
+  function on(el, fn){
+    if(!el) return;
+    el.classList.add('ip');
+    el.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      fn(e, el);
+    });
+  }
+
+  var toastEl = document.getElementById('ittoast');
+  var tTimer = null;
+  function toast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('on');
+    clearTimeout(tTimer);
+    tTimer = setTimeout(function(){ toastEl.classList.remove('on'); }, 1900);
+  }
+
+  /* ────────── 浮层：行菜单 + 下拉选项 ────────── */
+  var popEl = null;
+  var ddList = [];
+  function closePop(){
+    if(popEl){ popEl.parentNode.removeChild(popEl); popEl = null; }
+  }
+  function closeDds(){
+    ddList.forEach(function(d){
+      if(d.__always) return;
+      d.style.display = 'none';
+    });
+  }
+  document.addEventListener('click', function(){ closePop(); closeDds(); });
+
+  function mountPop(el, anchor){
+    closePop();
+    document.body.appendChild(el);
+    var r = anchor.getBoundingClientRect();
+    var w = el.offsetWidth, h = el.offsetHeight;
+    var left = Math.min(r.left, window.innerWidth - w - 12);
+    var top = r.bottom + 5;
+    if(top + h > window.innerHeight - 12) top = r.top - h - 5;
+    el.style.left = Math.max(8, left) + 'px';
+    el.style.top = Math.max(62, top) + 'px';
+    popEl = el;
+  }
+
+  function openRowMenu(anchor, status){
+    /* 备注⑥：取消只给待审核/待修改/待发布，中止只给进行中，别的不出现 */
+    var items = ['抽奖记录', '兑换记录', '复制活动'];
+    if(['待审核', '待修改', '待发布'].indexOf(status) >= 0) items.push('取消活动');
+    if(status === '进行中') items.push('中止活动');
+    var m = document.createElement('div');
+    m.className = 'itmenu';
+    items.forEach(function(label){
+      var d = document.createElement('div');
+      d.textContent = label;
+      d.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        closePop();
+        if(label === '抽奖记录') go(12);
+        else if(label === '兑换记录') go(13);
+        else if(label === '复制活动') go(2);
+        else toast('已' + label.slice(0, 2) + '该活动');
+      });
+      m.appendChild(d);
+    });
+    mountPop(m, anchor);
+  }
+
+  /* ────────── 导航条 ────────── */
+  var sel = document.getElementById('itSel');
+  var cnt = document.getElementById('itCnt');
+  var prevB = document.getElementById('itPrev');
+  var nextB = document.getElementById('itNext');
+  var modeB = document.getElementById('itMode');
+  var noteB = document.getElementById('itNote');
+  var cur = 1;
+
+  function isDemo(){ return document.body.classList.contains('it-demo'); }
+
+  rows.forEach(function(r, i){
+    r.setAttribute('data-s', String(i + 1));
+    var o = document.createElement('option');
+    o.value = String(i + 1);
+    o.textContent = txt(r.querySelector('.srt'));
+    sel.appendChild(o);
+  });
+
+  function go(n){
+    n = Number(n) || 1;
+    if(n < 1) n = 1;
+    if(n > TOTAL) n = TOTAL;
+    cur = n;
+    for(var i = 0; i < TOTAL; i++){
+      if(isDemo()) rows[i].classList.toggle('active', i === n - 1);
+      else rows[i].classList.remove('active');
+    }
+    sel.value = String(n);
+    cnt.textContent = n + ' / ' + TOTAL;
+    prevB.disabled = n <= 1;
+    nextB.disabled = n >= TOTAL;
+    closePop();
+    closeDds();
+    if(isDemo()) window.scrollTo(0, 0);
+    else if(rows[n - 1]) rows[n - 1].scrollIntoView({block: 'start'});
+    try{ history.replaceState(null, '', '#s' + n); }catch(err){}
+  }
+
+  on(prevB, function(){ go(cur - 1); });
+  on(nextB, function(){ go(cur + 1); });
+  sel.addEventListener('change', function(){ go(sel.value); });
+
+  on(modeB, function(){
+    if(isDemo()){
+      document.body.classList.remove('it-demo');
+      document.body.classList.add('it-flat');
+      modeB.textContent = '单屏演示';
+      modeB.classList.add('on');
+      go(cur);
+      toast('已平铺全部 ' + TOTAL + ' 屏，上下滚动查看');
+    } else {
+      document.body.classList.add('it-demo');
+      document.body.classList.remove('it-flat');
+      modeB.textContent = '平铺全部';
+      modeB.classList.remove('on');
+      go(cur);
+    }
+  });
+
+  on(noteB, function(){
+    var off = document.body.classList.toggle('it-nonote');
+    noteB.textContent = off ? '显示备注' : '隐藏备注';
+    noteB.classList.toggle('on', off);
+  });
+
+  document.addEventListener('keydown', function(e){
+    var tg = e.target && e.target.tagName;
+    var editing = tg === 'INPUT' || tg === 'SELECT' || tg === 'TEXTAREA' ||
+                  (e.target && e.target.isContentEditable);
+    if(e.key === 'Escape'){ closePop(); closeDds(); return; }
+    if(editing) return;
+    if(!isDemo()) return;
+    if(e.key === 'ArrowLeft'){ e.preventDefault(); go(cur - 1); }
+    else if(e.key === 'ArrowRight'){ e.preventDefault(); go(cur + 1); }
+  });
+
+  /* ────────── 通用控件：分段单选 / 开关 / 勾选 / 翻页 ────────── */
+  each(document, '.seg', function(seg){
+    each(seg, 'span', function(sp){
+      sp.addEventListener('click', function(){
+        each(seg, 'span', function(x){ x.classList.toggle('on', x === sp); });
+      });
+    });
+  });
+
+  each(document, '.sw', function(sw){
+    sw.addEventListener('click', function(e){
+      e.stopPropagation();
+      sw.classList.toggle('on');
+    });
+  });
+
+  each(document, 'table', function(tb){
+    var head = tb.querySelector('thead .ck');
+    var body = [].slice.call(tb.querySelectorAll('tbody .ck'));
+    if(!body.length) return;
+    function syncHead(){
+      if(!head) return;
+      var hit = body.filter(function(x){ return x.classList.contains('on'); }).length;
+      head.classList.remove('on', 'half');
+      if(hit > 0 && hit === body.length) head.classList.add('on');
+      else if(hit > 0) head.classList.add('half');
+    }
+    if(head){
+      head.classList.add('ip');
+      head.addEventListener('click', function(e){
+        e.stopPropagation();
+        var allOn = body.filter(function(x){ return x.classList.contains('on'); }).length === body.length;
+        body.forEach(function(x){ x.classList.toggle('on', !allOn); });
+        syncHead();
+      });
+    }
+    body.forEach(function(c){
+      c.classList.add('ip');
+      c.addEventListener('click', function(e){
+        e.stopPropagation();
+        c.classList.toggle('on');
+        syncHead();
+      });
+    });
+  });
+
+  each(document, '.pg', function(pg){
+    each(pg, '.pn', function(p){
+      if(p.classList.contains('dis') || !/^\d+$/.test(txt(p))) return;
+      p.classList.add('ip');
+      p.addEventListener('click', function(e){
+        e.stopPropagation();
+        each(pg, '.pn', function(x){ x.classList.remove('on'); });
+        p.classList.add('on');
+      });
+    });
+  });
+
+  /* ────────── 下拉选项表 ────────── */
+  var OPTS = {
+    '活动状态': ['全部', '待审核', '待修改', '待发布', '进行中', '已结束', '已取消', '已中止', '已驳回'],
+    '所属店铺': ['全部', '苏州旗舰店'],
+    '审核人': ['全部', '赵强', '孙磊', '张明'],
+    '审核状态': ['全部', '待审核', '已通过', '返回修改', '已驳回'],
+    '会员等级': ['全部', '普通会员', '银卡会员', '金卡会员', '钻石会员'],
+    '中奖结果': ['全部', '中奖', '谢谢惠顾'],
+    '奖品类型': ['全部', '券奖', '实物奖'],
+    '奖品状态': ['全部', '待填写到期', '待发货', '已发货', '已签收', '已到账'],
+    '选择店铺': ['苏州旗舰店'],
+    '关联实物': ['小米保温杯 500ml', '双肩包'],
+    '关联优惠券': ['10 元无门槛券', '满 100 减 20 元']
+  };
+  OPTS['奖品状态'] = ['全部', '待填写地址', '待发货', '已发货', '已签收', '已到账'];
+
+  function labelOf(el){
+    var f = el.closest('.f');
+    if(!f) return '';
+    var lb = f.querySelector('label');
+    return lb ? plain(lb).replace(/^\*+/, '') : '';
+  }
+  function selVal(inp){
+    var s2 = inp.querySelector('span');
+    var t = plain(inp);
+    return s2 ? t.slice(norm(s2.textContent).length) : t;
+  }
+  function setSel(inp, v){
+    var s2 = inp.querySelector('span');
+    if(s2){
+      inp.innerHTML = s2.outerHTML;
+      inp.appendChild(document.createTextNode(v));
+    } else {
+      inp.textContent = v;
+    }
+    inp.classList.remove('ph');
+  }
+
+  function openSelect(inp, opts){
+    var m = document.createElement('div');
+    m.className = 'itmenu';
+    var now = selVal(inp);
+    opts.forEach(function(o){
+      var d = document.createElement('div');
+      d.textContent = o;
+      if(o === now || (!now && o === '全部')) d.className = 'cur';
+      d.addEventListener('click', function(ev){
+        ev.stopPropagation();
+        setSel(inp, o);
+        closePop();
+      });
+      m.appendChild(d);
+    });
+    mountPop(m, inp);
+  }
+
+  /* ────────── 输入框 / 下拉框 变可操作 ────────── */
+  function enhanceForm(s){
+    /* 所有能填的框都能打字：占位符框点进去清空，已有值的框直接改 */
+    each(s, '.inp, .txtbox', function(inp){
+      if(inp.hasAttribute('contenteditable')) return;
+      if(inp.classList.contains('sel') || inp.classList.contains('ro')) return;
+      if(inp.classList.contains('txtbox') && inp.children.length) return; /* 玩法规则那类只读长文 */
+      if(inp.querySelector('.thumb')) return;                             /* 商品主图，带出不给改 */
+
+      var gray = window.getComputedStyle(inp).color === 'rgb(182, 190, 201)';
+      var isPh = inp.classList.contains('ph') || gray;
+      inp.dataset.phStyle = inp.style.color || '';
+      if(isPh) inp.dataset.ph = norm(inp.textContent);
+      inp.setAttribute('contenteditable', 'true');
+      inp.setAttribute('spellcheck', 'false');
+      inp.addEventListener('focus', function(){
+        if(!isPh) return;
+        if(plain(inp) === inp.dataset.ph){
+          inp.textContent = '​';
+          inp.classList.remove('ph');
+          inp.style.color = '#374151';
+        }
+      });
+      inp.addEventListener('blur', function(){
+        if(!plain(inp)){
+          if(isPh){
+            inp.textContent = inp.dataset.ph;
+            inp.classList.add('ph');
+            inp.style.color = inp.dataset.phStyle;
+          }
+        }
+      });
+    });
+
+    each(s, '.inp.sel', function(inp){
+      if(inp.closest('.dd2')) return;
+      var lab = labelOf(inp);
+      var opts = OPTS[lab];
+      if(!opts) return;
+      if(!inp.dataset.ph && inp.classList.contains('ph')) inp.dataset.ph = norm(inp.textContent);
+      on(inp, function(){ openSelect(inp, opts); });
+    });
+  }
+
+  /* ────────── 列表筛选 ────────── */
+  var FILTER_SPEC = {
+    1:  [['活动名称', 1, 1], ['活动状态', 3, 0], ['所属店铺', -1, 0], ['审核人', 8, 0]],
+    8:  [['活动名称', 1, 1], ['审核状态', 5, 0], ['提交人', 3, 0]],
+    12: [['会员等级', 3, 0], ['中奖结果', 5, 0], ['参与用户', -2, 1]],
+    13: [['中奖人', 1, 1], ['奖品类型', 3, 0], ['奖品状态', 5, 0]]
+  };
+
+  function inputByLabel(s, lab){
+    var found = null;
+    each(s, '.inp', function(inp){
+      if(!found && labelOf(inp) === lab) found = inp;
+    });
+    return found;
+  }
+
+  function applyFilter(s, n){
+    var spec = FILTER_SPEC[n];
+    var tb = s.querySelector('table tbody');
+    if(!spec || !tb) return 0;
+    var conds = [];
+    spec.forEach(function(it){
+      var inp = inputByLabel(s, it[0]);
+      if(!inp) return;
+      var v = plain(inp);
+      if(!v || v === '全部' || v === (inp.dataset.ph || '')) return;
+      conds.push({col: it[1], v: v, like: it[2]});
+    });
+    var shown = 0;
+    each(tb, 'tr', function(tr){
+      var ok = conds.every(function(c){
+        if(c.col === -1) return true;
+        var pool = c.col === -2 ? [tr.children[1], tr.children[2]] : [tr.children[c.col]];
+        return pool.some(function(td){
+          if(!td) return false;
+          var sv = plain(td);
+          return c.like ? sv.indexOf(c.v) >= 0 : sv === c.v;
+        });
+      });
+      tr.style.display = ok ? '' : 'none';
+      if(ok) shown++;
+    });
+    var pg = s.querySelector('.pg span');
+    if(pg){
+      if(!pg.dataset.total) pg.dataset.total = norm(pg.textContent).replace(/[^\d]/g, '');
+      pg.textContent = '共 ' + shown + ' 条';
+    }
+    return shown;
+  }
+
+  function resetFilter(s){
+    each(s, '.inp, .txtbox', function(inp){
+      if(inp.dataset.ph == null) return;
+      inp.textContent = inp.dataset.ph;
+      inp.classList.add('ph');
+    });
+    var tb = s.querySelector('table tbody');
+    if(tb) each(tb, 'tr', function(tr){ tr.style.display = ''; });
+    var pg = s.querySelector('.pg span');
+    if(pg && pg.dataset.total) pg.textContent = '共 ' + pg.dataset.total + ' 条';
+    toast('筛选条件已重置');
+  }
+
+  /* ────────── 步骤条 ────────── */
+  rows.forEach(function(s){
+    each(s, '.steps .stp', function(st){
+      var nm = txt(st);
+      var target = nm.indexOf('基本信息') >= 0 ? 2
+                 : nm.indexOf('奖项设置') >= 0 ? 3
+                 : nm.indexOf('页面装修') >= 0 ? 7 : 0;
+      st.classList.add('ip');
+      st.addEventListener('click', function(e){
+        e.stopPropagation();
+        if(st.classList.contains('on')){ toast('当前就在这里'); return; }
+        if(st.classList.contains('dn') && target) go(target);
+        else toast('前面的步骤没填完，不能往后跳');
+      });
+    });
+  });
+
+  /* ────────── 各屏动作 ────────── */
+
+  function addTierRow(btn){
+    var card = btn.closest('.card');
+    var frm = card.querySelector('.frm');
+    var box = btn.closest('.f');
+    if(!frm || !box) return;
+    var f = document.createElement('div');
+    f.className = 'f';
+    f.innerHTML =
+      '<label></label>' +
+      '<span style="font-size:12.5px;color:#6b7280">消费满</span>' +
+      '<div class="inp w60"></div>' +
+      '<span style="font-size:12.5px;color:#6b7280">元，加</span>' +
+      '<div class="inp w60"></div>' +
+      '<span style="font-size:12.5px;color:#6b7280">次</span>' +
+      '<span class="lk" style="margin-left:8px">删除</span>';
+    frm.insertBefore(f, box);
+    var lk = f.querySelector('.lk');
+    lk.classList.add('ip');
+    lk.addEventListener('click', function(){ f.parentNode.removeChild(f); });
+    toast('已新增一档，填好金额和加的次数');
+  }
+
+  function deletePrize(s, lk){
+    var tr = lk.closest('tr');
+    if(!tr) return;
+    var name = txt(tr.children[0]);
+    each(s, 'table tbody tr', function(row){
+      if(txt(row.children[0]) === name) row.parentNode.removeChild(row);
+    });
+    var tip = s.querySelector('.ct .tip');
+    var tb = s.querySelector('table tbody');
+    if(tip && tb) tip.textContent = '共 ' + tb.querySelectorAll('tr').length + ' 个奖项';
+    toast('已删除奖品「' + name + '」');
+  }
+
+  function checkProbAndGo(s){
+    var avg = false;
+    each(s, '.seg span.on', function(sp){ if(txt(sp).indexOf('平均') >= 0) avg = true; });
+    if(!avg){
+      var tbs = s.querySelectorAll('table');
+      var tb = tbs[1];
+      if(tb){
+        var sum = 0;
+        each(tb, 'tbody .inp', function(i){ sum += parseFloat(txt(i)) || 0; });
+        sum = Math.round(sum * 100) / 100;
+        if(sum !== 100){
+          toast('概率合计 ' + sum + '%，必须等于 100% 才能提交审核');
+          return;
+        }
+      }
+    }
+    go(7);
+  }
+
+  function batchPass(s){
+    var tbody = s.querySelector('table tbody');
+    if(!tbody) return;
+    var hit = 0;
+    each(tbody, 'tr', function(tr){
+      var ck = tr.querySelector('.ck');
+      if(!ck || !ck.classList.contains('on')) return;
+      var tg = tr.querySelector('.tg');
+      if(tg && txt(tg) === '待审核'){
+        tg.className = 'tg s';
+        tg.textContent = '已通过';
+        hit++;
+      }
+    });
+    if(hit) toast('已批量通过 ' + hit + ' 条活动');
+    else toast('请先勾选「待审核」的活动');
+  }
+
+  function submitAudit(s){
+    var picked = s.querySelector('.seg span.on');
+    if(!picked){ toast('请先选择审核结果'); return; }
+    var t = txt(picked);
+    if(t !== '通过'){
+      var box = s.querySelector('.txtbox');
+      var val = box ? plain(box) : '';
+      if(!val || val === '选「返回修改」或「驳回」后必填'){
+        toast('选「' + t + '」时修改意见必填');
+        return;
+      }
+    }
+    toast('审核已完成：' + t);
+    go(8);
+  }
+
+  /* 只换格子内容、不动节点，九宫格和转盘共用 */
+  function swapContent(a, b){
+    var ha = a.innerHTML, hb = b.innerHTML;
+    var ea = a.classList.contains('em'), eb = b.classList.contains('em');
+    a.innerHTML = hb;
+    b.innerHTML = ha;
+    a.classList.toggle('em', eb);
+    b.classList.toggle('em', ea);
+  }
+
+  function initGridSwap(s){
+    var g9 = s.querySelector('.g9');
+    var pvg = s.querySelector('.pvg');
+    if(!g9 || !pvg) return;
+    var cells = [].slice.call(g9.children);
+    var pvcs = [].slice.call(pvg.children);
+    var from = -1;
+
+    var swapBox = swapContent;
+
+    function clearOver(){
+      cells.forEach(function(x){ x.classList.remove('over', 'dragging'); });
+    }
+
+    cells.forEach(function(c, i){
+      if(c.classList.contains('dr')) return;
+      c.setAttribute('draggable', 'true');
+      c.classList.add('ip');
+      c.addEventListener('dragstart', function(e){
+        from = i;
+        c.classList.add('dragging');
+        try{
+          e.dataTransfer.effectAllowed = 'move';
+          e.dataTransfer.setData('text/plain', String(i));
+        }catch(err){}
+      });
+      c.addEventListener('dragend', function(){
+        c.classList.remove('dragging');
+        clearOver();
+        from = -1;
+      });
+      c.addEventListener('dragover', function(e){
+        if(from < 0 || from === i) return;
+        e.preventDefault();
+        try{ e.dataTransfer.dropEffect = 'move'; }catch(err){}
+        c.classList.add('over');
+      });
+      c.addEventListener('dragleave', function(){ c.classList.remove('over'); });
+      c.addEventListener('drop', function(e){
+        e.preventDefault();
+        clearOver();
+        if(from < 0 || from === i){ from = -1; return; }
+        swapBox(cells[from], cells[i]);
+        if(pvcs[from] && pvcs[i]) swapBox(pvcs[from], pvcs[i]);
+        toast('已拖动换位，右侧 C 端预览同步更新');
+        from = -1;
+      });
+    });
+  }
+
+  /* ────────── 转盘：选中「幸运大转盘」后下面的设置和 C 端预览跟着换 ────────── */
+  function initDeco(s){
+    var g9 = s.querySelector('.g9');
+    var pvg = s.querySelector('.pvg');
+    if(!g9 || !pvg) return null;
+    var host = g9.parentNode;
+    var gptEl = host.querySelector('.gpt');
+    var gptOrig = gptEl ? gptEl.innerHTML : '';
+
+    var wrapL = document.createElement('div');
+    wrapL.className = 'w8wrap';
+    wrapL.style.display = 'none';
+    var wheelL = document.createElement('div');
+    wheelL.className = 'w8';
+    wrapL.appendChild(wheelL);
+    host.insertBefore(wrapL, g9.nextSibling);
+
+    var wrapR = document.createElement('div');
+    wrapR.className = 'w8wrap';
+    wrapR.style.display = 'none';
+    var wheelR = document.createElement('div');
+    wheelR.className = 'w8';
+    wrapR.appendChild(wheelR);
+    pvg.parentNode.insertBefore(wrapR, pvg.nextSibling);
+
+    var dragFrom = -1;
+
+    function wheelPrizes(){
+      return [].slice.call(g9.children).filter(function(c){
+        return !c.classList.contains('dr');
+      });
+    }
+
+    function wheelClear(){
+      each(wheelL, '.w8lbl', function(x){ x.classList.remove('over', 'dragging'); });
+    }
+
+    function wheelSwap(i, j){
+      var P = wheelPrizes(), Q = [];
+      var pg = s.querySelector('.pvg');
+      if(pg) Q = [].slice.call(pg.children).filter(function(c){
+        return !c.classList.contains('dr');
+      });
+      if(P[i] && P[j]) swapContent(P[i], P[j]);
+      if(Q[i] && Q[j]) swapContent(Q[i], Q[j]);
+    }
+
+    function build(target, live){
+      target.innerHTML = '';
+      var disc = document.createElement('div');
+      disc.className = 'w8disc';
+      target.appendChild(disc);
+      var prizes = [].slice.call(g9.children).filter(function(c){
+        return !c.classList.contains('dr');
+      });
+      var n = prizes.length || 1;
+      prizes.forEach(function(c, i){
+        var ang = ((i + 0.5) * (360 / n) - 90) * Math.PI / 180;
+        var box = document.createElement('div');
+        box.className = 'w8lbl';
+        box.dataset.i = String(i);
+        box.style.left = (123 + 86 * Math.cos(ang)) + 'px';
+        box.style.top = (123 + 86 * Math.sin(ang)) + 'px';
+        var ic = c.querySelector('.ic');
+        var clone = c.cloneNode(true);
+        var g = clone.querySelector('.grip');
+        if(g) g.parentNode.removeChild(g);
+        var i2 = clone.querySelector('.ic');
+        if(i2) i2.parentNode.removeChild(i2);
+        box.innerHTML = '<span class="ic">' + (ic ? ic.textContent : '🎁') + '</span>' +
+                        clone.textContent.replace(/\s+/g, '');
+        if(live){
+          box.setAttribute('draggable', 'true');
+          box.addEventListener('dragstart', function(e){
+            dragFrom = i;
+            box.classList.add('dragging');
+            try{
+              e.dataTransfer.effectAllowed = 'move';
+              e.dataTransfer.setData('text/plain', String(i));
+            }catch(err){}
+          });
+          box.addEventListener('dragend', function(){
+            dragFrom = -1;
+            wheelClear();
+          });
+          box.addEventListener('dragover', function(e){
+            if(dragFrom < 0 || dragFrom === i) return;
+            e.preventDefault();
+            try{ e.dataTransfer.dropEffect = 'move'; }catch(err){}
+            box.classList.add('over');
+          });
+          box.addEventListener('dragleave', function(){ box.classList.remove('over'); });
+          box.addEventListener('drop', function(e){
+            e.preventDefault();
+            var a = dragFrom;
+            dragFrom = -1;
+            wheelClear();
+            if(a < 0 || a === i) return;
+            wheelSwap(a, i);
+            build(wheelL, true);
+            build(wheelR);
+            toast('已拖动换位，右侧 C 端预览同步更新');
+          });
+        }
+        target.appendChild(box);
+      });
+      var hub = document.createElement('div');
+      hub.className = 'w8hub';
+      hub.textContent = '抽奖';
+      target.appendChild(hub);
+    }
+
+    return function(wheel){
+      if(wheel){
+        build(wheelL, true);
+        build(wheelR);
+        wrapL.style.display = '';
+        wrapR.style.display = '';
+        g9.style.display = 'none';
+        pvg.style.display = 'none';
+        if(gptEl) gptEl.innerHTML = '转盘 <span style="color:#b6bec9">（拖动换位）</span>';
+      } else {
+        wrapL.style.display = 'none';
+        wrapR.style.display = 'none';
+        g9.style.display = '';
+        pvg.style.display = '';
+        if(gptEl) gptEl.innerHTML = gptOrig;
+      }
+    };
+  }
+
+  /* ────────── 先给所有屏做表单增强 ────────── */
+  rows.forEach(enhanceForm);
+
+  rows.forEach(function(s, idx){
+    var n = idx + 1;
+
+    each(s, '.mi', function(m){
+      var t = txt(m);
+      on(m, function(){
+        if(t.indexOf('活动审核') >= 0) go(8);
+        else go(1);
+      });
+    });
+
+    switch(n){
+
+      case 1:
+        each(s, '.btns .btn', function(b){
+          var t = txt(b);
+          if(t.indexOf('新建活动') >= 0) on(b, function(){ go(2); });
+          else if(t.indexOf('批量导出') >= 0) on(b, function(){ toast('已按当前筛选条件导出全部列'); });
+          else if(t === '查询') on(b, function(){ toast('已筛选出 ' + applyFilter(s, 1) + ' 条活动'); });
+          else if(t === '重置') on(b, function(){ resetFilter(s); });
+        });
+        each(s, '.lk', function(lk){
+          var t = txt(lk);
+          if(t.indexOf('详情') >= 0){
+            on(lk, function(){ go(11); });
+          } else if(t.indexOf('编辑') >= 0){
+            if(lk.classList.contains('gray')) on(lk, function(){ toast('只有「待审核」「待修改」的活动能编辑'); });
+            else on(lk, function(){ go(2); });
+          } else if(t.indexOf('⋯') >= 0){
+            on(lk, function(e, el){
+              var tr = el.closest('tr');
+              var tg = tr ? tr.querySelector('.tg') : null;
+              openRowMenu(el, tg ? txt(tg) : '');
+            });
+          }
+        });
+        break;
+
+      case 2:
+        var bAdd = null, bCancel = null, bSave = null, bNext = null;
+        each(s, '.btn', function(b){
+          var t = txt(b);
+          if(t.indexOf('添加一档') >= 0) bAdd = b;
+          else if(t === '取消') bCancel = b;
+          else if(t === '保存') bSave = b;
+          else if(t === '下一步') bNext = b;
+        });
+        on(bCancel, function(){ go(1); });
+        on(bSave, function(){ toast('已保存，活动状态仍为「草稿」'); });
+        on(bNext, function(){ go(3); });
+        on(bAdd, function(){ addTierRow(bAdd); });
+        /* 抽奖次数设置：一个 seg 二选一，下面的内容跟着换 */
+        (function(){
+          var seg = s.querySelector('.seg');
+          if(!seg) return;
+          var frm = seg.closest('.frm');
+          if(!frm) return;
+          var rows = [].slice.call(frm.children).filter(function(x){
+            return String(x.className || '').indexOf('f') >= 0;
+          });
+          var tableRow = rows[1] || null;
+          var alt = document.createElement('div');
+          alt.className = 'f';
+          alt.style.display = 'none';
+          alt.innerHTML = '<label></label><div class="inp w60">3</div>' +
+                          '<span class="unit">次 / 人 / 天，所有会员一样</span>';
+          if(tableRow) tableRow.parentNode.insertBefore(alt, tableRow.nextSibling);
+          each(seg, 'span', function(sp){
+            sp.addEventListener('click', function(){
+              var uni = txt(sp).indexOf('统一') >= 0;
+              if(tableRow) tableRow.style.display = uni ? 'none' : '';
+              alt.style.display = uni ? '' : 'none';
+            });
+          });
+        })();
+        break;
+
+      case 3:
+        each(s, '.btn', function(b){
+          var t = txt(b);
+          if(t.indexOf('添加奖品') >= 0) on(b, function(){ go(4); });
+          else if(t === '上一步') on(b, function(){ go(2); });
+          else if(t === '保存') on(b, function(){ toast('已保存'); });
+          else if(t === '下一步') on(b, function(){ checkProbAndGo(s); });
+        });
+        each(s, '.lk', function(lk){
+          var t = txt(lk);
+          if(t.indexOf('编辑') >= 0) on(lk, function(){ go(4); });
+          else if(t.indexOf('删除') >= 0) on(lk, function(){ deletePrize(s, lk); });
+        });
+        each(s, '.seg span', function(sp){
+          sp.addEventListener('click', function(){
+            var avg = txt(sp).indexOf('平均') >= 0;
+            var card = sp.closest('.card');
+            if(!card) return;
+            each(card, 'table', function(tb){
+              each(tb, 'tr', function(tr){
+                var c = tr.children[2];
+                if(c) c.style.display = avg ? 'none' : '';
+              });
+              var col = tb.querySelector('colgroup col:nth-child(3)');
+              if(col) col.style.width = avg ? '0' : '';
+            });
+            var total = card.querySelector('div[style*="justify-content:flex-end"]');
+            if(total) total.style.display = avg ? 'none' : '';
+            if(avg) toast('平均概率下所有奖品等概率，「转到概率」这一栏不出现');
+          });
+        });
+        break;
+
+      case 4:
+      case 5:
+      case 6:
+        (function(){
+          var mask = s.querySelector('.dlgmask');
+          if(mask){
+            mask.addEventListener('click', function(e){
+              if(e.target === mask) go(3);
+            });
+          }
+          each(s, '.dlg .seg span', function(sp){
+            sp.addEventListener('click', function(){
+              var t = txt(sp);
+              if(t === '券奖') go(5);
+              else if(t === '实物奖') go(4);
+              else if(t === '未中奖') go(6);
+            });
+          });
+          on(s.querySelector('.dlgh .x'), function(){ go(3); });
+          var titleEl = s.querySelector('.dlgh');
+          var title = titleEl && titleEl.children[0] ? norm(titleEl.children[0].textContent) : '奖品';
+          each(s, '.dlgf .btn', function(b){
+            var t = txt(b);
+            on(b, function(){
+              if(t === '确定') toast(title + '：已保存');
+              go(3);
+            });
+          });
+
+          /* 发货仓库：点开才出现，第一行是搜索框 */
+          var dd = s.querySelector('.dd2');
+          if(dd){
+            dd.style.display = 'none';
+            ddList.push(dd);
+            var search = dd.querySelector('.dd2s');
+            if(search){
+              search.dataset.ph = norm(search.textContent);
+              search.setAttribute('contenteditable', 'true');
+              search.setAttribute('spellcheck', 'false');
+              search.addEventListener('click', function(e){ e.stopPropagation(); });
+              search.addEventListener('focus', function(){
+                if(plain(search) === search.dataset.ph){
+                  search.textContent = '​';
+                }
+              });
+              search.addEventListener('input', function(){
+                var q = plain(search);
+                each(dd, '.dd2i', function(it){
+                  var nm = it.childNodes[0] ? norm(it.childNodes[0].nodeValue) : '';
+                  it.style.display = (!q || nm.indexOf(q) >= 0) ? '' : 'none';
+                  if(it.style.display === '') it.classList.add('ip');
+                });
+              });
+              search.addEventListener('blur', function(){
+                if(!plain(search)){
+                  search.textContent = search.dataset.ph;
+                }
+              });
+            }
+            each(dd, '.dd2i', function(it){
+              it.classList.add('ip');
+              on(it, function(){
+                if(it.classList.contains('dis')){ toast('该仓库库存为 0，不可选'); return; }
+                var inp = dd.previousElementSibling;
+                if(inp){
+                  var label = it.childNodes[0] ? norm(it.childNodes[0].nodeValue) : '';
+                  inp.innerHTML = '<span style="color:#9ca3af">🔍</span>' + label;
+                }
+                dd.style.display = 'none';
+              });
+            });
+            each(s, '.inp.sel', function(inp){
+              if(inp.nextElementSibling === dd){
+                on(inp, function(){
+                  dd.style.display = dd.style.display === 'none' ? '' : 'none';
+                });
+              }
+            });
+          }
+        })();
+        break;
+
+      case 7:
+        (function(){
+          var setDeco = initDeco(s);
+          each(s, '.btn', function(b){
+            var t = txt(b);
+            if(t === '取消') on(b, function(){ go(1); });
+            else if(t === '上一步') on(b, function(){ go(3); });
+            else if(t === '保存') on(b, function(){ toast('已保存'); });
+            else if(t.indexOf('提交审核') >= 0){
+              on(b, function(){ toast('已提交审核，活动状态变为「待审核」'); go(1); });
+            }
+          });
+          each(s, '.opt', function(o){
+            on(o, function(){
+              each(s, '.opt', function(x){ x.classList.toggle('on', x === o); });
+              var isWheel = !!o.querySelector('.disc');
+              if(setDeco) setDeco(isWheel);
+              var nmEl = o.querySelector('.nm');
+              toast('抽奖形式已切换为「' + (nmEl ? txt(nmEl) : '') + '」');
+            });
+          });
+          initGridSwap(s);
+
+          /* 正文字号三档：只影响右边 C 端预览的正文 */
+          (function(){
+            var ph = s.querySelector('.pvphone');
+            if(!ph) return;
+            var FS = { '小': 0.86, '中': 1, '大': 1.18 };
+            each(s, '.f', function(f){
+              var lb = f.querySelector('label');
+              if(!lb || norm(lb.textContent) !== '正文字号') return;
+              each(f, '.seg span', function(sp){
+                sp.addEventListener('click', function(){
+                  var k = norm(sp.textContent);
+                  ph.style.setProperty('--pvfs', FS[k] || 1);
+                  toast('正文字号已设为「' + k + '」，只影响 C 端正文');
+                });
+              });
+              /* 初始化按当前选中档位取值 */
+              var cur = f.querySelector('.seg span.on');
+              if(cur) ph.style.setProperty('--pvfs', FS[norm(cur.textContent)] || 1);
+            });
+          })();
+        })();
+        break;
+
+      case 8:
+        each(s, '.ph1 .btn', function(b){
+          if(txt(b).indexOf('批量通过') >= 0) on(b, function(){ batchPass(s); });
+        });
+        each(s, '.btns .btn', function(b){
+          var t = txt(b);
+          if(t === '查询') on(b, function(){ toast('已筛选出 ' + applyFilter(s, 8) + ' 条活动'); });
+          else if(t === '重置') on(b, function(){ resetFilter(s); });
+        });
+        each(s, '.lk', function(lk){
+          if(txt(lk).indexOf('审核') >= 0) on(lk, function(){ go(9); });
+          else on(lk, function(){ go(10); });
+        });
+        break;
+
+      case 9:
+        each(s, '.seg span', function(sp){
+          sp.addEventListener('click', function(){
+            var box = s.querySelector('.txtbox');
+            if(!box) return;
+            var isPass = txt(sp) === '通过';
+            box.classList.toggle('off', isPass);
+            box.style.pointerEvents = isPass ? 'none' : '';
+          });
+        });
+        each(s, '.btn', function(b){
+          var t = txt(b);
+          if(t === '确定') on(b, function(){ submitAudit(s); });
+          else if(t.indexOf('返回列表') >= 0) on(b, function(){ go(8); });
+        });
+        break;
+
+      case 10:
+        each(s, '.btn', function(b){
+          on(b, function(){ go(8); });
+        });
+        break;
+
+      case 11:
+        break;
+
+      case 12:
+        each(s, '.btn', function(b){
+          var t = txt(b);
+          if(t.indexOf('导出') >= 0) on(b, function(){ toast('已按当前筛选条件导出全部列'); });
+          else if(t === '查询') on(b, function(){ toast('已筛选出 ' + applyFilter(s, 12) + ' 条记录'); });
+          else if(t === '重置') on(b, function(){ resetFilter(s); });
+        });
+        break;
+
+      case 13:
+        each(s, '.btn', function(b){
+          var t = txt(b);
+          if(t.indexOf('导出') >= 0) on(b, function(){ toast('已按当前筛选条件导出全部列'); });
+          else if(t === '查询') on(b, function(){ toast('已筛选出 ' + applyFilter(s, 13) + ' 条记录'); });
+          else if(t === '重置') on(b, function(){ resetFilter(s); });
+        });
+        each(s, 'table tbody tr', function(tr){
+          var lk = tr.querySelector('.lk');
+          if(!lk || txt(lk).indexOf('查看物流') < 0) return;
+          on(lk, function(){
+            var ship = tr.children[6] ? txt(tr.children[6]) : '';
+            if(ship === '已发货' || ship === '已签收') go(15);
+            else { toast('还没发货，先看兑换单'); go(14); }
+          });
+        });
+        break;
+
+      case 14:
+      case 15:
+        each(s, '.btn', function(b){
+          if(txt(b).indexOf('返回列表') >= 0) on(b, function(){ go(13); });
+        });
+        break;
+    }
+  });
+
+  each(document, '.btn', function(b){
+    if(b.classList.contains('ip')) return;
+    b.classList.add('ip');
+    b.addEventListener('click', function(e){
+      e.stopPropagation();
+      toast('「' + txt(b) + '」在本原型里没有对应页面');
+    });
+  });
+
+  var m = /#s(\d+)/.exec(location.hash || '');
+  go(m ? Number(m[1]) : 1);
+})();
+</script>
+</body>
+</html>
